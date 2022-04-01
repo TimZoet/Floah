@@ -65,6 +65,9 @@ class FloahConan(ConanFile):
         
         self.requires("common/1.0.0@timzoet/stable")
         self.requires("dot/1.0.0@timzoet/stable")
+        
+        if self.options.build_tests:
+            self.requires("bettertest/1.0.0@timzoet/stable")
     
     def package_info(self):
         self.cpp_info.components["core"].libs = ["floah"]

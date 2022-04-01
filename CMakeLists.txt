@@ -33,6 +33,9 @@ add_subdirectory(modules)
 if (BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
+if (BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
 
 ################################################################################
 # Set startup project.
