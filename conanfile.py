@@ -65,13 +65,14 @@ class FloahConan(ConanFile):
         
         self.requires("common/1.0.0@timzoet/stable")
         self.requires("dot/1.0.0@timzoet/stable")
+        self.requires("stduuid/1.0.0@timzoet/stable")
         
         if self.options.build_tests:
             self.requires("bettertest/1.0.0@timzoet/stable")
     
     def package_info(self):
         self.cpp_info.components["core"].libs = ["floah"]
-        self.cpp_info.components["core"].requires = ["common::common", "dot::dot"]
+        self.cpp_info.components["core"].requires = ["common::common", "dot::dot", "stduuid::stduuid"]
     
     def generate(self):
         base = self.python_requires["pyreq"].module.BaseConan
