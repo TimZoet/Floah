@@ -19,7 +19,7 @@ set(SOURCES
 
 set(DEPS_PRIVATE
     bettertest::bettertest
-    floah
+    floah-layout
 )
 
 make_target(

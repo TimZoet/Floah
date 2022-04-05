@@ -33,7 +33,7 @@ class FloahConan(ConanFile):
     
     def set_version(self):
         base = self.python_requires["pyreq"].module.BaseConan
-        base.set_version(self, "modules/floah/floahVersionString.cmake", "FLOAH_VERSION")
+        base.set_version(self, "modules/floah-layout/floahVersionString.cmake", "FLOAH_VERSION")
     
     def init(self):
         base = self.python_requires["pyreq"].module.BaseConan
@@ -51,7 +51,6 @@ class FloahConan(ConanFile):
         self.copy("license")
         self.copy("readme.md")
         self.copy("cmake/*")
-        self.copy("modules/CMakeLists.txt")
         self.copy("modules/*")
     
     def config_options(self):
@@ -71,8 +70,14 @@ class FloahConan(ConanFile):
             self.requires("bettertest/1.0.0@timzoet/stable")
     
     def package_info(self):
-        self.cpp_info.components["core"].libs = ["floah"]
-        self.cpp_info.components["core"].requires = ["common::common", "dot::dot", "stduuid::stduuid"]
+        self.cpp_info.components["layout"].libs = ["floah-layout"]
+        self.cpp_info.components["layout"].requires = ["common::common", "dot::dot", "stduuid::stduuid"]
+        self.cpp_info.components["put"].libs = ["floah-put"]
+        self.cpp_info.components["put"].requires = ["floah-layout"]
+        self.cpp_info.components["viz"].libs = ["floah-viz"]
+        self.cpp_info.components["viz"].requires = ["floah-layout"]
+        self.cpp_info.components["widget"].libs = ["floah-widget"]
+        self.cpp_info.components["widget"].requires = ["floah-layout", "floah-put", "floah-viz"]
     
     def generate(self):
         base = self.python_requires["pyreq"].module.BaseConan

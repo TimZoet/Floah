@@ -1,6 +1,6 @@
 #include "floah_test/elements/horizontal_flow.h"
 
-#include "floah/elements/horizontal_flow.h"
+#include "floah-layout/elements/horizontal_flow.h"
 
 namespace test
 {

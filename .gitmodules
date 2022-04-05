@@ -1,3 +1,15 @@
 [submodule "cmake"]
 	path = cmake
 	url = git@github.com:TimZoet/cmake-module.git
+[submodule "modules/floah-widget"]
+	path = modules/floah-widget
+	url = git@github.com:TimZoet/floah-widget-module.git
+[submodule "modules/floah-viz"]
+	path = modules/floah-viz
+	url = git@github.com:TimZoet/floah-viz-module.git
+[submodule "modules/floah-put"]
+	path = modules/floah-put
+	url = git@github.com:TimZoet/floah-put-module.git
+[submodule "modules/floah-layout"]
+	path = modules/floah-layout
+	url = git@github.com:TimZoet/floah-layout-module.git

@@ -1,1 +1,4 @@
-add_subdirectory(floah)
+add_subdirectory(floah-layout)
+add_subdirectory(floah-put)
+add_subdirectory(floah-viz)
+add_subdirectory(floah-widget)
