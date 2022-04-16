@@ -13,3 +13,6 @@
 [submodule "modules/floah-layout"]
 	path = modules/floah-layout
 	url = git@github.com:TimZoet/floah-layout-module.git
+[submodule "modules/floah-data"]
+	path = modules/floah-data
+	url = git@github.com:TimZoet/floah-data-module.git
