@@ -64,6 +64,8 @@ class FloahConan(ConanFile):
         
         self.requires("common/1.0.0@timzoet/stable")
         self.requires("dot/1.0.0@timzoet/stable")
+        self.requires("freetype/2.11.1")
+        self.requires("icu/71.1")
         self.requires("math/1.0.0@timzoet/stable")
         self.requires("sol/1.0.0@timzoet/stable")
         self.requires("stduuid/1.0.0@timzoet/stable")
@@ -78,7 +80,7 @@ class FloahConan(ConanFile):
         self.cpp_info.components["put"].libs = ["floah-put"]
         self.cpp_info.components["put"].requires = ["floah-layout"]
         self.cpp_info.components["viz"].libs = ["floah-viz"]
-        self.cpp_info.components["viz"].requires = ["floah-layout", "math::math", "sol::core", "sol::luna"]
+        self.cpp_info.components["viz"].requires = ["floah-layout", "freetype::freetype", "icu::icu", "math::math", "sol::core", "sol::luna"]
         self.cpp_info.components["widget"].libs = ["floah-widget"]
         self.cpp_info.components["widget"].requires = ["floah-layout", "floah-put", "floah-viz"]
     
