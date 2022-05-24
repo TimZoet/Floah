@@ -17,6 +17,7 @@
 #include "luna/command/fwd.h"
 #include "luna/command/material/forward/update_forward_material_manager_command.h"
 #include "sol/core/fwd.h"
+#include "sol/material/fwd.h"
 #include "sol/render/forward/fwd.h"
 #include "sol/scenegraph/fwd.h"
 
@@ -149,6 +150,8 @@ private:
     uint32_t imageIdx = 0;
 
     floah::PanelPtr panel;
+
+    sol::ForwardMaterialManagerPtr materialManager;
 
     sol::ForwardMaterial* swapchainMaterial = nullptr;
 

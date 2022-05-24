@@ -297,15 +297,17 @@ void Window::createCommandBuffers()
 
 void Window::createMaterials()
 {
+    materialManager = std::make_unique<sol::ForwardMaterialManager>(*application->memoryManager);
+    materialManager->setDataSetCount(swapchain->getImageCount());
+
     auto vertShader =
       application->shaderCache->getModule("vertex/display")->createVulkanShaderModuleShared(*application->device);
     auto fragShader =
       application->shaderCache->getModule("fragment/display")->createVulkanShaderModuleShared(*application->device);
 
-    swapchainMaterial =
-      &application->materialManager->addMaterial(std::make_unique<DisplayMaterial>(vertShader, fragShader));
+    swapchainMaterial = &materialManager->addMaterial(std::make_unique<DisplayMaterial>(vertShader, fragShader));
     swapchainMaterial->setMeshLayout(*application->displayMeshLayout);
-    swapchainMaterialInstance = &application->materialManager->addMaterialInstance(
+    swapchainMaterialInstance = &materialManager->addMaterialInstance(
       *swapchainMaterial, std::make_unique<DisplayMaterialInstance>(*swapchainTextures.front()));
 }
 
@@ -413,21 +415,21 @@ void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialMa
     presentCommand.setImageIndexPtr(&imageIdx);
     presentCommand.addDependency(swapchainSubmitCommand);
 
-    acquireCommand.setRecreateFunction([&](sol::VulkanSwapchain&) {
+    const auto recreate = [&](sol::VulkanSwapchain&) {
         framebuffers.clear();
+        swapchainFramebuffers.clear();
+        swapchainTextures.clear();
+        // TODO: Destroy images and textures.
         createFramebuffers();
         // TODO: This is a bit of a hack (see also comment on getFrameBuffers method).
         renderCommand.getFramebuffers().clear();
+        swapchainRenderCommand.getFramebuffers().clear();
         for (auto& f : framebuffers) renderCommand.getFramebuffers().push_back(f.get());
-    });
+        for (auto& f : swapchainFramebuffers) swapchainRenderCommand.getFramebuffers().push_back(f.get());
+    };
 
-    presentCommand.setRecreateFunction([&](sol::VulkanSwapchain&) {
-        framebuffers.clear();
-        createFramebuffers();
-        // TODO: This is a bit of a hack (see also comment on getFrameBuffers method).
-        renderCommand.getFramebuffers().clear();
-        for (auto& f : framebuffers) renderCommand.getFramebuffers().push_back(f.get());
-    });
+    acquireCommand.setRecreateFunction(recreate);
+    presentCommand.setRecreateFunction(recreate);
 }
 
 void Window::createPanel()

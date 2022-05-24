@@ -34,3 +34,8 @@ make_target(
     SOURCES "${SOURCES}"
     DEPS_PUBLIC "${DEPS_PUBLIC}"
 )
+
+target_compile_definitions(${NAME}
+    PRIVATE
+        RESOURCES_DIR="${PROJECT_SOURCE_DIR}/examples/draft/resources"
+)

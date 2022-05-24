@@ -1,6 +1,12 @@
 #include "draft/application.h"
 
 ////////////////////////////////////////////////////////////////
+// Standard includes.
+////////////////////////////////////////////////////////////////
+
+#include <fstream>
+
+////////////////////////////////////////////////////////////////
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
@@ -93,6 +99,11 @@ void Application::createCommandQueue()
     for (const auto& window : windows) window->createCommands(pollCommand, updateMtlManagerCmd);
 
     commandQueue->finalize();
+
+    dot::Graph graph;
+    commandQueue->visualize(graph);
+    std::ofstream f("commands.dot");
+    graph.write(f);
 }
 
 void Application::run()
@@ -117,8 +128,7 @@ void Application::run()
 
 void Application::createInstance()
 {
-    // TODO: Need to create a window here, otherwise sol::Window::getRequiredExtensions() returns an empty list. Has to do with static initialization, I guess. Not exactly sure why, though.
-    auto                          window = std::make_unique<sol::Window>(std::array{32, 32}, "");
+    glfwInit();
     sol::VulkanInstance::Settings instanceSettings;
     instanceSettings.applicationName = "ForwardRenderer";
     instanceSettings.extensions      = sol::Window::getRequiredExtensions();
@@ -242,7 +252,7 @@ void Application::createShaderCache()
 {
     auto [cache, created] = sol::ShaderCache::openOrCreate("shadercache.db");
 
-    const auto importAndCompile = [&cache](const std::string&                        shaderFile,
+    const auto importAndCompile = [&cache](const std::filesystem::path&              shaderFile,
                                            std::string                               identifier,
                                            const sol::VulkanShaderModule::ShaderType shaderType) {
         const auto source = cache->importSource(
@@ -258,41 +268,24 @@ void Application::createShaderCache()
             }
         }
     };
-    // TODO: Get rid of hardcoded paths.
-    importAndCompile(R"(C:\\Users\\timzo\\dev\\projects\\Floah\\source\\examples\\draft\\shaders\\widget.vert)",
-                     "vertex/widget",
-                     sol::VulkanShaderModule::ShaderType::Vertex);
 
-    importAndCompile(R"(C:\\Users\\timzo\\dev\\projects\\Floah\\source\\examples\\draft\\shaders\\widget.frag)",
-                     "fragment/widget",
-                     sol::VulkanShaderModule::ShaderType::Fragment);
-
-    importAndCompile(R"(C:\\Users\\timzo\\dev\\projects\\Floah\\source\\examples\\draft\\shaders\\text.vert)",
-                     "vertex/text",
-                     sol::VulkanShaderModule::ShaderType::Vertex);
-
-    importAndCompile(R"(C:\\Users\\timzo\\dev\\projects\\Floah\\source\\examples\\draft\\shaders\\text.frag)",
-                     "fragment/text",
-                     sol::VulkanShaderModule::ShaderType::Fragment);
-
-    importAndCompile(R"(C:\\Users\\timzo\\dev\\projects\\Floah\\source\\examples\\draft\\shaders\\display.vert)",
-                     "vertex/display",
-                     sol::VulkanShaderModule::ShaderType::Vertex);
-
-    importAndCompile(R"(C:\\Users\\timzo\\dev\\projects\\Floah\\source\\examples\\draft\\shaders\\display.frag)",
-                     "fragment/display",
-                     sol::VulkanShaderModule::ShaderType::Fragment);
+    const std::filesystem::path dir = RESOURCES_DIR;
+    importAndCompile(dir / R"(shaders/widget.vert)", "vertex/widget", sol::VulkanShaderModule::ShaderType::Vertex);
+    importAndCompile(dir / R"(shaders/widget.frag)", "fragment/widget", sol::VulkanShaderModule::ShaderType::Fragment);
+    importAndCompile(dir / R"(shaders/text.vert)", "vertex/text", sol::VulkanShaderModule::ShaderType::Vertex);
+    importAndCompile(dir / R"(shaders/text.frag)", "fragment/text", sol::VulkanShaderModule::ShaderType::Fragment);
+    importAndCompile(dir / R"(shaders/display.vert)", "vertex/display", sol::VulkanShaderModule::ShaderType::Vertex);
+    importAndCompile(
+      dir / R"(shaders/display.frag)", "fragment/display", sol::VulkanShaderModule::ShaderType::Fragment);
 
     shaderCache = std::move(cache);
 }
 
 void Application::createMaterials()
 {
-    // TODO: Retrieve font from elsewhere. Ship with application, if license allows it?
-    materials.fontmap =
-      std::make_unique<floah::FontMap>(R"(C:\Users\timzo\AppData\Local\Microsoft\Windows\Fonts\FiraCode-Regular.ttf)",
-                                       std::make_pair<uint32_t, uint32_t>(0x0001, 0x024F),
-                                       math::uint2{0, 24});
+    const std::filesystem::path dir = RESOURCES_DIR;
+    materials.fontmap               = std::make_unique<floah::FontMap>(
+      dir / R"(fonts/FiraCode-Regular.ttf)", std::make_pair<uint32_t, uint32_t>(0x0001, 0x024F), math::uint2{0, 24});
     materials.fontmap->generateTexture(*textureManager);
     textureManager->transfer();
 
