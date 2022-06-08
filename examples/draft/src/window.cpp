@@ -434,9 +434,7 @@ void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialMa
 
 void Window::createPanel()
 {
-    panel = std::make_unique<floah::Panel>();
-    panel->setInputContext(*inputContext);
-    panel->setMeshManager(*application->meshManager);
+    panel = std::make_unique<floah::Panel>(*inputContext);
 
     auto& layout = panel->getLayout();
     layout.getSize().setWidth(floah::Length(width));
@@ -461,16 +459,13 @@ void Window::createPanel()
     checkbox1.setLabel("Another Toggle");
     checkbox1.setPanelLayoutElement(checkbox1Elem);
 
-    panel->setFontMap(*application->materials.fontmap);
-
     auto& mtlNode = scenegraph->getRootNode().addChild(
       std::make_unique<sol::ForwardMaterialNode>(*application->materials.textInstance));
-    panel->setRootNode(mtlNode);
 
     panel->generatePanelLayout();
     panel->generateWidgetLayouts();
-    panel->generateGeometry();
-    panel->generateScenegraph();
+    panel->generateGeometry(*application->meshManager, *application->materials.fontmap);
+    panel->generateScenegraph(mtlNode);
 
     application->meshManager->transferStagedCopies();
 }
