@@ -43,10 +43,10 @@ namespace test
         grid.appendRow();
         grid.appendColumn();
         grid.appendColumn();
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 1, 1);
-        expectThrow([&] { grid.insert(std::make_unique<floah::Element>(), 0, 2); });
-        expectThrow([&] { grid.insert(std::make_unique<floah::Element>(), 0, 2); });
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 1);
+        expectThrow([&] { grid.insert(std::make_unique<floah::LayoutElement>(), 0, 2); });
+        expectThrow([&] { grid.insert(std::make_unique<floah::LayoutElement>(), 0, 2); });
 
         // Check they're in the right spot.
         compareEQ(grid.get(0, 0), &elem0);
@@ -61,7 +61,7 @@ namespace test
         compareEQ(elem1.getParent(), &grid);
 
         // Overwrite.
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
         compareEQ(grid.get(0, 0), &elem2);
         compareEQ(elem2.getParent(), &grid);
 
@@ -75,7 +75,7 @@ namespace test
         expectThrow([&] { grid.remove(0, 2); });
 
         // Extract.
-        grid.insert(std::make_unique<floah::Element>(), 0, 0);
+        grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
         const auto elem3 = grid.extract(0, 0);
         compareNE(elem3.get(), nullptr);
         compareEQ(elem3->getParent(), nullptr);
@@ -116,10 +116,10 @@ namespace test
         compareEQ(grid.getRowCount(), 1);
 
         // Insert some elements to check if they remain in the proper spot.
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 1, 0);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 2, 0);
-        auto& elem3 = grid.insert(std::make_unique<floah::Element>(), 3, 0);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 0);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 2, 0);
+        auto& elem3 = grid.insert(std::make_unique<floah::LayoutElement>(), 3, 0);
 
         // Append again and check elements are still at front.
         expectNoThrow([&] { grid.appendRow(); });
@@ -166,10 +166,10 @@ namespace test
         compareEQ(grid.getRowCount(), 1);
 
         // Insert some elements to check if they remain in the proper spot.
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 1, 0);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 2, 0);
-        auto& elem3 = grid.insert(std::make_unique<floah::Element>(), 3, 0);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 0);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 2, 0);
+        auto& elem3 = grid.insert(std::make_unique<floah::LayoutElement>(), 3, 0);
 
         // Prepend again and check elements have shifted.
         expectNoThrow([&] { grid.prependRow(); });
@@ -218,10 +218,10 @@ namespace test
         compareEQ(grid.getRowCount(), 1);
 
         // Insert some elements to check if they remain in the proper spot.
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 1, 0);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 2, 0);
-        auto& elem3 = grid.insert(std::make_unique<floah::Element>(), 3, 0);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 0);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 2, 0);
+        auto& elem3 = grid.insert(std::make_unique<floah::LayoutElement>(), 3, 0);
 
         // Insert again and check elements have shifted.
         expectNoThrow([&] { grid.insertRow(0); });
@@ -266,10 +266,10 @@ namespace test
         grid.appendColumn();
 
         // Insert some elements to check if they remain in the proper spot.
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 1, 1);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 2, 1);
-        grid.insert(std::make_unique<floah::Element>(), 3, 2);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 1);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 2, 1);
+        grid.insert(std::make_unique<floah::LayoutElement>(), 3, 2);
 
         // Remove row and check remaining elements.
         expectNoThrow([&] { grid.removeRow(2); });
@@ -309,10 +309,10 @@ namespace test
         grid.appendColumn();
         grid.appendColumn();
         grid.appendColumn();
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 1, 1);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 2, 1);
-        auto& elem3 = grid.insert(std::make_unique<floah::Element>(), 3, 2);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 1);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 2, 1);
+        auto& elem3 = grid.insert(std::make_unique<floah::LayoutElement>(), 3, 2);
 
         // And then extract rows one by one.
         auto elems = grid.extractRow(2);
@@ -374,10 +374,10 @@ namespace test
         compareEQ(grid.getColumnCount(), 1);
 
         // Insert some elements to check if they remain in the proper spot.
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 0, 1);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 0, 2);
-        auto& elem3 = grid.insert(std::make_unique<floah::Element>(), 0, 3);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 1);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 2);
+        auto& elem3 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 3);
 
         // Append again and check elements are still in first column.
         expectNoThrow([&] { grid.appendColumn(); });
@@ -424,10 +424,10 @@ namespace test
         compareEQ(grid.getColumnCount(), 1);
 
         // Insert some elements to check if they remain in the proper spot.
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 0, 1);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 0, 2);
-        auto& elem3 = grid.insert(std::make_unique<floah::Element>(), 0, 3);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 1);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 2);
+        auto& elem3 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 3);
 
         // Prepend again and check elements have shifted.
         expectNoThrow([&] { grid.prependColumn(); });
@@ -476,10 +476,10 @@ namespace test
         compareEQ(grid.getColumnCount(), 1);
 
         // Insert some elements to check if they remain in the proper spot.
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 0, 1);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 0, 2);
-        auto& elem3 = grid.insert(std::make_unique<floah::Element>(), 0, 3);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 1);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 2);
+        auto& elem3 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 3);
 
         // Insert again and check elements have shifted.
         expectNoThrow([&] { grid.insertColumn(0); });
@@ -524,10 +524,10 @@ namespace test
         grid.appendColumn();
 
         // Insert some elements to check if they remain in the proper spot.
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 1, 1);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 1, 2);
-        grid.insert(std::make_unique<floah::Element>(), 2, 3);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 1);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 2);
+        grid.insert(std::make_unique<floah::LayoutElement>(), 2, 3);
 
         // Remove column and check remaining elements.
         expectNoThrow([&] { grid.removeColumn(2); });
@@ -567,10 +567,10 @@ namespace test
         grid.appendColumn();
         grid.appendColumn();
         grid.appendColumn();
-        auto& elem0 = grid.insert(std::make_unique<floah::Element>(), 0, 0);
-        auto& elem1 = grid.insert(std::make_unique<floah::Element>(), 1, 1);
-        auto& elem2 = grid.insert(std::make_unique<floah::Element>(), 1, 2);
-        auto& elem3 = grid.insert(std::make_unique<floah::Element>(), 2, 3);
+        auto& elem0 = grid.insert(std::make_unique<floah::LayoutElement>(), 0, 0);
+        auto& elem1 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 1);
+        auto& elem2 = grid.insert(std::make_unique<floah::LayoutElement>(), 1, 2);
+        auto& elem3 = grid.insert(std::make_unique<floah::LayoutElement>(), 2, 3);
 
         // And then extract columns one by one.
         auto elems = grid.extractColumn(2);

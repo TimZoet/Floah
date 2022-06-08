@@ -444,10 +444,10 @@ void Window::createPanel()
     root.getSize().setWidth(floah::Length(1.0f));
     root.getSize().setHeight(floah::Length(1.0f));
     root.getInnerMargin().set(0, 0, 0, 32);
-    auto& checkbox0Elem = root.append(std::make_unique<floah::Element>());
+    auto& checkbox0Elem = root.append(std::make_unique<floah::LayoutElement>());
     checkbox0Elem.getSize().setWidth(floah::Length(360));
     checkbox0Elem.getSize().setHeight(floah::Length(1.0f));
-    auto& checkbox1Elem = root.append(std::make_unique<floah::Element>());
+    auto& checkbox1Elem = root.append(std::make_unique<floah::LayoutElement>());
     checkbox1Elem.getSize().setWidth(floah::Length(160));
     checkbox1Elem.getSize().setHeight(floah::Length(1.0f));
 

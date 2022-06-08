@@ -39,13 +39,13 @@ namespace test
 
         // Append, prepend and insert some elements.
         compareEQ(flow.getChildCount(), 0);
-        auto& elem2 = flow.append(std::make_unique<floah::Element>());
+        auto& elem2 = flow.append(std::make_unique<floah::LayoutElement>());
         compareEQ(flow.getChildCount(), 1);
-        auto& elem3 = flow.append(std::make_unique<floah::Element>());
+        auto& elem3 = flow.append(std::make_unique<floah::LayoutElement>());
         compareEQ(flow.getChildCount(), 2);
-        auto& elem1 = flow.prepend(std::make_unique<floah::Element>());
+        auto& elem1 = flow.prepend(std::make_unique<floah::LayoutElement>());
         compareEQ(flow.getChildCount(), 3);
-        auto& elem0 = flow.insert(std::make_unique<floah::Element>(), 0);
+        auto& elem0 = flow.insert(std::make_unique<floah::LayoutElement>(), 0);
         compareEQ(flow.getChildCount(), 4);
 
         // Check they're in the right spot.
