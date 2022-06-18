@@ -16,3 +16,6 @@
 [submodule "modules/floah-data"]
 	path = modules/floah-data
 	url = git@github.com:TimZoet/floah-data-module.git
+[submodule "modules/floah-common"]
+	path = modules/floah-common
+	url = git@github.com:TimZoet/floah-common-module.git

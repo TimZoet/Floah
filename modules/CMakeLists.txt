@@ -1,3 +1,4 @@
+add_subdirectory(floah-common)
 add_subdirectory(floah-data)
 add_subdirectory(floah-layout)
 add_subdirectory(floah-put)
