@@ -11,17 +11,22 @@ WidgetMaterial::WidgetMaterial(sol::VulkanShaderModuleSharedPtr vertexModule,
                                sol::VulkanShaderModuleSharedPtr fragmentModule) :
     ForwardMaterial(std::move(vertexModule), std::move(fragmentModule))
 {
-    // TODO: We need to add this dummy because SOL crashes when you don't have any uniforms. That needs fixing, obvs.
-    auto& ub0                 = layout.addUniformBuffer();
-    ub0.name                  = "Dummy";
-    ub0.set                   = 0;
-    ub0.binding               = 0;
-    ub0.size                  = sizeof(float);
-    ub0.count                 = 1;
-    ub0.stages                = VK_SHADER_STAGE_VERTEX_BIT;
-    ub0.usage.updateDetection = sol::MaterialLayout::UpdateDetection::Manual;
-    ub0.sharing.method        = sol::ForwardMaterialLayout::SharingMethod::None;
-    ub0.sharing.count         = 1;
+    auto& windowTransform                 = layout.addUniformBuffer();
+    windowTransform.name                  = "WindowTransform";
+    windowTransform.set                   = 0;
+    windowTransform.binding               = 0;
+    windowTransform.size                  = sizeof(float) * 8;
+    windowTransform.count                 = 1;
+    windowTransform.stages                = VK_SHADER_STAGE_VERTEX_BIT;
+    windowTransform.usage.updateDetection = sol::MaterialLayout::UpdateDetection::Always;
+    windowTransform.sharing.method        = sol::ForwardMaterialLayout::SharingMethod::None;
+    windowTransform.sharing.count         = 1;
+
+    auto& widgetTransform  = layout.addPushConstant();
+    widgetTransform.name   = "WidgetTransform";
+    widgetTransform.size   = sizeof(float) * 4;
+    widgetTransform.offset = 0;
+    widgetTransform.stages = VK_SHADER_STAGE_VERTEX_BIT;
 
     VkPipelineColorBlendAttachmentState colorBlending;
     colorBlending.blendEnable         = VK_TRUE;
@@ -42,10 +47,27 @@ WidgetMaterial::~WidgetMaterial() noexcept = default;
 
 WidgetMaterialInstance::~WidgetMaterialInstance() noexcept = default;
 
+////////////////////////////////////////////////////////////////
+// Getters.
+////////////////////////////////////////////////////////////////
+
 uint32_t WidgetMaterialInstance::getSetIndex() const { return 0; }
 
 bool WidgetMaterialInstance::isUniformBufferStale(size_t binding) const { return false; }
 
-const void* WidgetMaterialInstance::getUniformBufferData(size_t binding) const { return &dummy; }
+const void* WidgetMaterialInstance::getUniformBufferData(size_t binding) const
+{
+    return &windowTransform;
+}
 
 sol::Texture2D* WidgetMaterialInstance::getTextureData(size_t binding) const { return nullptr; }
+
+////////////////////////////////////////////////////////////////
+// Setters.
+////////////////////////////////////////////////////////////////
+
+void WidgetMaterialInstance::setWindowTransform(math::float4 lower, math::float4 upper)
+{
+    windowTransform.r0 = std::move(lower);
+    windowTransform.r1 = std::move(upper);
+}

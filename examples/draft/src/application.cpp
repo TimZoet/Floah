@@ -289,19 +289,10 @@ void Application::createMaterials()
     materials.fontmap->generateTexture(*textureManager);
     textureManager->transfer();
 
-    auto widgetVertShader = shaderCache->getModule("vertex/widget")->createVulkanShaderModuleShared(*device);
-    auto widgetFragShader = shaderCache->getModule("fragment/widget")->createVulkanShaderModuleShared(*device);
-    auto textVertShader   = shaderCache->getModule("vertex/text")->createVulkanShaderModuleShared(*device);
-    auto textFragShader   = shaderCache->getModule("fragment/text")->createVulkanShaderModuleShared(*device);
+    materials.widgetVertShader = shaderCache->getModule("vertex/widget")->createVulkanShaderModuleShared(*device);
+    materials.widgetFragShader = shaderCache->getModule("fragment/widget")->createVulkanShaderModuleShared(*device);
+    materials.textVertShader   = shaderCache->getModule("vertex/text")->createVulkanShaderModuleShared(*device);
+    materials.textFragShader   = shaderCache->getModule("fragment/text")->createVulkanShaderModuleShared(*device);
 
-    materials.widget =
-      &materialManager->addMaterial(std::make_unique<WidgetMaterial>(widgetVertShader, widgetFragShader));
-    materials.widget->setMeshLayout(*meshLayout);
-    materials.widgetInstance =
-      &materialManager->addMaterialInstance(*materials.widget, std::make_unique<WidgetMaterialInstance>());
-
-    materials.text = &materialManager->addMaterial(std::make_unique<TextMaterial>(textVertShader, textFragShader));
-    materials.text->setMeshLayout(*meshLayout);
-    materials.textInstance = &materialManager->addMaterialInstance(
-      *materials.text, std::make_unique<TextMaterialInstance>(*materials.fontmap->getTexture()));
+    
 }

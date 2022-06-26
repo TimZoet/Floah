@@ -110,10 +110,10 @@ private:
     struct
     {
         std::unique_ptr<floah::FontMap> fontmap;
-        sol::ForwardMaterial*           widget          = nullptr;
-        sol::ForwardMaterialInstance*   widgetInstance  = nullptr;
-        sol::ForwardMaterial*           text            = nullptr;
-        sol::ForwardMaterialInstance*   textInstance    = nullptr;
+        sol::VulkanShaderModuleSharedPtr widgetVertShader;
+        sol::VulkanShaderModuleSharedPtr widgetFragShader;
+        sol::VulkanShaderModuleSharedPtr textVertShader;
+        sol::VulkanShaderModuleSharedPtr textFragShader;
     } materials;
 
     sol::CommandQueuePtr commandQueue;

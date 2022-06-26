@@ -1,6 +1,12 @@
 #include "draft/window.h"
 
 ////////////////////////////////////////////////////////////////
+// Standard includes.
+////////////////////////////////////////////////////////////////
+
+#include <fstream>
+
+////////////////////////////////////////////////////////////////
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
@@ -42,6 +48,7 @@
 #include "sol/scenegraph/scenegraph.h"
 #include "sol/scenegraph/drawable/mesh_node.h"
 #include "sol/scenegraph/forward/forward_material_node.h"
+#include "sol/texture/image2d.h"
 #include "sol/texture/texture_manager.h"
 #include "sol/texture/texture2d.h"
 
@@ -174,16 +181,28 @@ void Window::createRenderPass()
         colorAttachment.setInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
         colorAttachment.setFinalLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
+        auto& depthAttachment = renderPassLayout.createAttachment();
+        depthAttachment.setFormat(VK_FORMAT_D32_SFLOAT);
+        depthAttachment.setSamples(VK_SAMPLE_COUNT_1_BIT);
+        depthAttachment.setLoadOp(VK_ATTACHMENT_LOAD_OP_CLEAR);
+        depthAttachment.setStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
+        depthAttachment.setStencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+        depthAttachment.setStencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE);
+        depthAttachment.setInitialLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+        depthAttachment.setFinalLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
         auto& subpass = renderPassLayout.createSubpass();
         subpass.setPipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS);
         subpass.addColorAttachment(colorAttachment, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        subpass.setDepthStencilAttachment(depthAttachment, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-        subpass.addExternalDependency(true,
-                                      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                                      0,
-                                      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                                      VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                                      0);
+        subpass.addExternalDependency(
+          true,
+          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+          0,
+          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+          VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+          0);
 
         renderPassLayout.finalize();
 
@@ -257,16 +276,23 @@ void Window::createFramebuffers()
 {
     for (size_t i = 0; i < Application::maxFrames; i++)
     {
-        auto& image =
+        auto& colorImage =
           application->textureManager->createImage2D(VK_FORMAT_R32G32B32A32_SFLOAT,
                                                      {swapchain->getExtent().width, swapchain->getExtent().height},
                                                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-        auto& texture = application->textureManager->createTexture2D(image);
-        swapchainTextures.emplace_back(&texture);
+        auto& colorTexture = application->textureManager->createTexture2D(colorImage);
+        swapchainTextures.emplace_back(&colorTexture);
+
+        auto& depthImage = application->textureManager->createImage2D(
+          VK_FORMAT_D32_SFLOAT, colorImage.getSize(), VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        depthImage.setTargetLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        depthImage.setAspectFlags(VK_IMAGE_ASPECT_DEPTH_BIT);
+        auto& depthTexture = application->textureManager->createTexture2D(depthImage);
 
         sol::VulkanFramebuffer::Settings framebufferSettings;
         framebufferSettings.renderPass = renderPass;
-        framebufferSettings.attachments.emplace_back(texture.getImageView());
+        framebufferSettings.attachments.emplace_back(colorTexture.getImageView());
+        framebufferSettings.attachments.emplace_back(depthTexture.getImageView());
         framebufferSettings.width  = swapchain->getExtent().width;
         framebufferSettings.height = swapchain->getExtent().height;
         framebuffers.emplace_back(sol::VulkanFramebuffer::create(framebufferSettings));
@@ -299,6 +325,22 @@ void Window::createMaterials()
 {
     materialManager = std::make_unique<sol::ForwardMaterialManager>(*application->memoryManager);
     materialManager->setDataSetCount(swapchain->getImageCount());
+
+    widgetMaterial = &materialManager->addMaterial(std::make_unique<WidgetMaterial>(
+      application->materials.widgetVertShader, application->materials.widgetFragShader));
+    widgetMaterial->setMeshLayout(*application->meshLayout);
+    widgetMaterialInstance =
+      &materialManager->addMaterialInstance(*widgetMaterial, std::make_unique<WidgetMaterialInstance>());
+    widgetMaterialInstance->setWindowTransform(math::float4(0, 0, -1000, 0), math::float4(width, height, 1000, 0));
+
+    textMaterial = &materialManager->addMaterial(
+      std::make_unique<TextMaterial>(application->materials.textVertShader, application->materials.textFragShader));
+    textMaterial->setMeshLayout(*application->meshLayout);
+    textMaterialInstance0 = &materialManager->addMaterialInstance(
+      *textMaterial, std::make_unique<TextMaterialInstance>(*application->materials.fontmap->getTexture()));
+    textMaterialInstance1 =
+      &materialManager->addMaterialInstance(*textMaterial, std::make_unique<TextMaterialInstance>());
+    textMaterialInstance1->setWindowTransform(math::float4(0, 0, -1000, 0), math::float4(width, height, 1000, 0));
 
     auto vertShader =
       application->shaderCache->getModule("vertex/display")->createVulkanShaderModuleShared(*application->device);
@@ -335,6 +377,12 @@ void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialMa
     updateMaterialCommand.setFunction(
       [&] { swapchainMaterialInstance->setTexture(*swapchainTextures[application->frameIdx]); });
 
+    auto& updateWindowMtlManagerCmd = commandQueue.createCommand<sol::UpdateForwardMaterialManagerCommand>();
+    updateWindowMtlManagerCmd.setName("Update Forward Material Manager");
+    updateWindowMtlManagerCmd.setMaterialManager(*materialManager);
+    updateWindowMtlManagerCmd.setImageIndexPtr(&application->frameIdx);
+    updateWindowMtlManagerCmd.addDependency(updateMaterialCommand);
+
     auto& renderCommand = commandQueue.createCommand<sol::ForwardRenderCommand>();
     renderCommand.setName("Render");
     renderCommand.setRenderer(*renderer);
@@ -343,7 +391,7 @@ void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialMa
     renderCommand.setCommandBufferList(*commandBuffers);
     for (const auto& fb : framebuffers) renderCommand.addFramebuffer(*fb);
     renderCommand.setImageIndexPtr(&application->frameIdx);
-    renderCommand.addDependency(updateMaterialCommand);
+    renderCommand.addDependency(updateWindowMtlManagerCmd);
 
     updateMtlManagerCmd.addDependency(awaitFenceCommand);
 
@@ -434,7 +482,14 @@ void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialMa
 
 void Window::createPanel()
 {
+    panelStylesheet    = std::make_unique<floah::Stylesheet>();
+    checkboxStylesheet = std::make_unique<floah::Stylesheet>();
+    checkboxStylesheet->set("color", math::float4(1, 0, 0, 1));
+
     panel = std::make_unique<floah::Panel>(*inputContext);
+    panel->setStylesheet(panelStylesheet.get());
+    auto& bottomLayer = panel->createLayer("bottom", 150);
+    auto& topLayer    = panel->createLayer("top", -10);
 
     auto& layout = panel->getLayout();
     layout.getSize().setWidth(floah::Length(width));
@@ -445,29 +500,40 @@ void Window::createPanel()
     root.getSize().setHeight(floah::Length(1.0f));
     root.getInnerMargin().set(0, 0, 0, 32);
     auto& checkbox0Elem = root.append(std::make_unique<floah::LayoutElement>());
-    checkbox0Elem.getSize().setWidth(floah::Length(360));
+    checkbox0Elem.getSize().setWidth(floah::Length(160));
     checkbox0Elem.getSize().setHeight(floah::Length(1.0f));
     auto& checkbox1Elem = root.append(std::make_unique<floah::LayoutElement>());
     checkbox1Elem.getSize().setWidth(floah::Length(160));
     checkbox1Elem.getSize().setHeight(floah::Length(1.0f));
 
-    auto& checkbox0 = panel->addWidget(std::make_unique<floah::Checkbox>());
+    auto& checkbox0 = panel->addWidget(std::make_unique<floah::Checkbox>(), topLayer);
     checkbox0.setLabel("Some Toggle");
     checkbox0.setPanelLayoutElement(checkbox0Elem);
+    checkbox0.setStylesheet(checkboxStylesheet.get());
 
-    auto& checkbox1 = panel->addWidget(std::make_unique<floah::Checkbox>());
+    auto& checkbox1 = panel->addWidget(std::make_unique<floah::Checkbox>(), bottomLayer);
     checkbox1.setLabel("Another Toggle");
     checkbox1.setPanelLayoutElement(checkbox1Elem);
 
-    auto& mtlNode = scenegraph->getRootNode().addChild(
-      std::make_unique<sol::ForwardMaterialNode>(*application->materials.textInstance));
+    auto& widgetNode =
+      scenegraph->getRootNode().addChild(std::make_unique<sol::ForwardMaterialNode>(*widgetMaterialInstance));
+    auto& textNode0 =
+      scenegraph->getRootNode().addChild(std::make_unique<sol::ForwardMaterialNode>(*textMaterialInstance0));
+    auto& textNode1 = textNode0.addChild(std::make_unique<sol::ForwardMaterialNode>(*textMaterialInstance1));
+
+    scenegraphGenerator = std::make_unique<ScenegraphGenerator>(*widgetMaterial, *textMaterial, widgetNode, textNode1);
 
     panel->generatePanelLayout();
     panel->generateWidgetLayouts();
     panel->generateGeometry(*application->meshManager, *application->materials.fontmap);
-    panel->generateScenegraph(mtlNode);
+    panel->generateScenegraph(*scenegraphGenerator);
 
     application->meshManager->transferStagedCopies();
+
+    dot::Graph graph;
+    scenegraph->visualize(graph);
+    std::ofstream f(std::string("scenegraph") + name + ".dot");
+    graph.write(f);
 }
 
 void Window::createSwapchainRenderData()

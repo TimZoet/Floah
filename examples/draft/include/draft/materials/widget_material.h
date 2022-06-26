@@ -4,9 +4,11 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "math/include_all.h"
 #include "sol/core/fwd.h"
 #include "sol/material/forward/forward_material.h"
 #include "sol/material/forward/forward_material_instance.h"
+#include "sol/scenegraph/forward/forward_push_constant_node.h"
 
 class WidgetMaterial final : public sol::ForwardMaterial
 {
@@ -53,6 +55,45 @@ public:
 
     [[nodiscard]] sol::Texture2D* getTextureData(size_t binding) const override;
 
+    ////////////////////////////////////////////////////////////////
+    // Setters.
+    ////////////////////////////////////////////////////////////////
+
+    void setWindowTransform(math::float4 lower, math::float4 upper);
+
 private:
-    float dummy = 0;
+    math::mat4x4f windowTransform;
+};
+
+class WidgetTransformNode final : public sol::ForwardPushConstantNode
+{
+public:
+    WidgetTransformNode(sol::ForwardMaterial& material, math::float4 o) :
+        ForwardPushConstantNode(material), offset(std::move(o))
+    {
+        // Enable first push constant.
+        enablePushConstant(0);
+    }
+
+    [[nodiscard]] const void* getData(const size_t index) const override
+    {
+        assert(index == 0);
+
+        return &offset;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // Getters.
+    ////////////////////////////////////////////////////////////////
+
+    [[nodiscard]] math::float4 getOffset() const noexcept { return offset; }
+
+    ////////////////////////////////////////////////////////////////
+    // Setters.
+    ////////////////////////////////////////////////////////////////
+
+    void setOffset(math::float4 o) noexcept { offset = std::move(o); }
+
+private:
+    math::float4 offset;
 };

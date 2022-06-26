@@ -4,6 +4,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "math/include_all.h"
 #include "sol/core/fwd.h"
 #include "sol/material/forward/forward_material.h"
 #include "sol/material/forward/forward_material_instance.h"
@@ -56,6 +57,15 @@ public:
 
     [[nodiscard]] sol::Texture2D* getTextureData(size_t binding) const override;
 
+    ////////////////////////////////////////////////////////////////
+    // Setters.
+    ////////////////////////////////////////////////////////////////
+
+    void setFontmap(sol::Texture2D& fmap);
+
+    void setWindowTransform(math::float4 lower, math::float4 upper);
+
 private:
+    math::mat4x4f   windowTransform;
     sol::Texture2D* fontmap = nullptr;
 };

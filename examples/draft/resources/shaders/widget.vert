@@ -7,14 +7,26 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec2 outTexCoord;
 
-layout(set = 0, binding = 0) uniform Dummy
+layout(set = 0, binding = 0) uniform WindowTransform
 {
-    float f;
-} dummy;
+    vec4 lower;
+    vec4 upper;
+} windowTransform;
+
+layout(push_constant) uniform WidgetTransform
+{
+    layout(offset = 0) vec4 offset;
+} widgetTransform;
 
 void main()
 {
-    gl_Position = vec4(inPosition.x / 320 - 1, inPosition.y / 320 - 1.0, 0, 1);
+    vec4 range = windowTransform.upper - windowTransform.lower;
+    gl_Position = vec4(
+        (inPosition.x + widgetTransform.offset.x - windowTransform.lower.x) / range.x * 2.0 - 1.0,
+        (inPosition.y + widgetTransform.offset.y - windowTransform.lower.y) / range.y * 2.0 - 1.0,
+        1.0 - (inPosition.z + widgetTransform.offset.z - windowTransform.lower.z) / range.z,
+        1
+    );
     outColor = inColor;
     outTexCoord = inTexCoord;
 }

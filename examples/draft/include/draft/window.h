@@ -25,7 +25,10 @@
 // Current target includes.
 ////////////////////////////////////////////////////////////////
 
+#include "draft/generators.h"
 #include "draft/materials/display_material.h"
+#include "draft/materials/text_material.h"
+#include "draft/materials/widget_material.h"
 
 class Application;
 
@@ -153,7 +156,23 @@ private:
 
     sol::ForwardMaterialManagerPtr materialManager;
 
+    sol::ForwardMaterial* widgetMaterial = nullptr;
+
+    WidgetMaterialInstance* widgetMaterialInstance = nullptr;
+
+    sol::ForwardMaterial* textMaterial = nullptr;
+
+    TextMaterialInstance* textMaterialInstance0 = nullptr;
+
+    TextMaterialInstance* textMaterialInstance1 = nullptr;
+
     sol::ForwardMaterial* swapchainMaterial = nullptr;
 
     DisplayMaterialInstance* swapchainMaterialInstance = nullptr;
+
+    std::unique_ptr<ScenegraphGenerator> scenegraphGenerator;
+
+    floah::StylesheetPtr panelStylesheet;
+
+    floah::StylesheetPtr checkboxStylesheet;
 };
