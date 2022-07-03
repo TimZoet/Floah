@@ -86,8 +86,9 @@ void Application::createCommandQueue()
     auto& pollCommand = commandQueue->createCommand<sol::CustomCommand>();
     pollCommand.setName("Poll");
     pollCommand.setFunction([&] {
+        for (const auto& window : windows) window->inputContext->prePoll();
         glfwPollEvents();
-        for (const auto& window : windows) window->inputContext->frame();
+        for (const auto& window : windows) window->inputContext->postPoll();
     });
 
 

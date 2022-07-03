@@ -12,6 +12,7 @@
 
 #include "common/enum_classes.h"
 #include "floah-layout/elements/horizontal_flow.h"
+#include "floah-widget/node_masks.h"
 #include "floah-widget/widgets/checkbox.h"
 #include "luna/window.h"
 #include "luna/command/command_queue.h"
@@ -128,6 +129,7 @@ void Window::initialize()
     window       = std::make_unique<sol::Window>(std::array{width, height}, "ForwardRenderer");
     inputContext = std::make_unique<floah::InputContext>();
     scenegraph   = std::make_unique<sol::Scenegraph>();
+    createDataSources();
     createSurface();
     createSwapchain();
     createRenderPass();
@@ -251,6 +253,12 @@ void Window::createRenderer()
     swapchainRenderData = std::make_unique<sol::ForwardRenderData>();
     traverser           = std::make_unique<sol::ForwardTraverser>();
     renderer            = std::make_unique<sol::ForwardRenderer>();
+
+    traverser->setTypeMaskFunction([](uint64_t mask) {
+        if (mask & static_cast<uint64_t>(floah::NodeMasks::Disabled))
+            return sol::ITraverser::TraversalAction::Terminate;
+        return sol::ITraverser::TraversalAction::Continue;
+    });
     renderer->getRenderSettings()->setCullMode(sol::RenderSettings::CullMode::None);
 }
 
@@ -357,12 +365,20 @@ void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialMa
 {
     auto& commandQueue = pollCmd.getCommandQueue();
 
+    auto& regenerateCommand = commandQueue.createCommand<sol::CustomCommand>();
+    regenerateCommand.setFunction([&] {
+        panel->generateWidgetLayouts();
+        panel->generateGeometry(*application->meshManager, *application->materials.fontmap);
+        panel->generateScenegraph(*scenegraphGenerator);
+    });
+    regenerateCommand.addDependency(pollCmd);
+
     auto& traverseCommand = commandQueue.createCommand<sol::ForwardTraverseCommand>();
     traverseCommand.setName("Traverse");
     traverseCommand.setRenderData(*renderData);
     traverseCommand.setTraverser(*traverser);
     traverseCommand.setScenegraph(*scenegraph);
-    traverseCommand.addDependency(pollCmd);
+    traverseCommand.addDependency(regenerateCommand);
 
     auto& awaitFenceCommand = commandQueue.createCommand<sol::FenceCommand>();
     awaitFenceCommand.setName("Await Fence");
@@ -484,12 +500,14 @@ void Window::createPanel()
 {
     panelStylesheet    = std::make_unique<floah::Stylesheet>();
     checkboxStylesheet = std::make_unique<floah::Stylesheet>();
-    checkboxStylesheet->set("color", math::float4(1, 0, 0, 1));
+    //panelStylesheet->set(floah::Checkbox::checkbox_box_size, floah::Size(1.0f, 0.5f));
+    //checkboxStylesheet->set(floah::Checkbox::checkbox_box_size, floah::Size(1.0f, 0.25f));
+    //panelStylesheet->set(floah::Checkbox::checkbox_box_height, floah::Length(1.0f));
+    //checkboxStylesheet->set(floah::Checkbox::checkbox_box_height, floah::Length(0.5f));
 
     panel = std::make_unique<floah::Panel>(*inputContext);
     panel->setStylesheet(panelStylesheet.get());
-    auto& bottomLayer = panel->createLayer("bottom", 150);
-    auto& topLayer    = panel->createLayer("top", -10);
+    auto& topLayer = panel->createLayer("top", -1);
 
     auto& layout = panel->getLayout();
     layout.getSize().setWidth(floah::Length(width));
@@ -500,20 +518,23 @@ void Window::createPanel()
     root.getSize().setHeight(floah::Length(1.0f));
     root.getInnerMargin().set(0, 0, 0, 32);
     auto& checkbox0Elem = root.append(std::make_unique<floah::LayoutElement>());
-    checkbox0Elem.getSize().setWidth(floah::Length(160));
+    checkbox0Elem.getSize().setWidth(floah::Length(320));
     checkbox0Elem.getSize().setHeight(floah::Length(1.0f));
     auto& checkbox1Elem = root.append(std::make_unique<floah::LayoutElement>());
-    checkbox1Elem.getSize().setWidth(floah::Length(160));
+    checkbox1Elem.getSize().setWidth(floah::Length(320));
     checkbox1Elem.getSize().setHeight(floah::Length(1.0f));
 
     auto& checkbox0 = panel->addWidget(std::make_unique<floah::Checkbox>(), topLayer);
     checkbox0.setLabel("Some Toggle");
     checkbox0.setPanelLayoutElement(checkbox0Elem);
     checkbox0.setStylesheet(checkboxStylesheet.get());
+    checkbox0.setDataSource(dataSources.val0Source.get());
 
-    auto& checkbox1 = panel->addWidget(std::make_unique<floah::Checkbox>(), bottomLayer);
+    auto& checkbox1 = panel->addWidget(std::make_unique<floah::Checkbox>(), topLayer);
     checkbox1.setLabel("Another Toggle");
     checkbox1.setPanelLayoutElement(checkbox1Elem);
+    checkbox1.setStylesheet(checkboxStylesheet.get());
+    checkbox1.setDataSource(dataSources.val1Source.get());
 
     auto& widgetNode =
       scenegraph->getRootNode().addChild(std::make_unique<sol::ForwardMaterialNode>(*widgetMaterialInstance));
@@ -544,4 +565,10 @@ void Window::createSwapchainRenderData()
     mtlNode.addChild(std::make_unique<sol::MeshNode>(*application->quadMesh));
 
     traverser->traverse(graph, *swapchainRenderData);
+}
+
+void Window::createDataSources()
+{
+    dataSources.val0Source = std::make_unique<floah::BoolDataSource>(dataSources.val0);
+    dataSources.val1Source = std::make_unique<floah::BoolDataSource>(dataSources.val1);
 }

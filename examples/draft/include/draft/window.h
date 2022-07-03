@@ -11,6 +11,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "floah-data/bool_data_source.h"
 #include "floah-put/input_context.h"
 #include "floah-widget/panel.h"
 #include "luna/fwd.h"
@@ -83,6 +84,8 @@ private:
     void createPanel();
 
     void createSwapchainRenderData();
+
+    void createDataSources();
 
     ////////////////////////////////////////////////////////////////
     // Member variables.
@@ -175,4 +178,12 @@ private:
     floah::StylesheetPtr panelStylesheet;
 
     floah::StylesheetPtr checkboxStylesheet;
+
+    struct
+    {
+        bool val0 = false;
+        bool val1 = true;
+        std::unique_ptr<floah::IBoolDataSource> val0Source;
+        std::unique_ptr<floah::IBoolDataSource> val1Source;
+    } dataSources;
 };
