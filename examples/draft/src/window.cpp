@@ -14,10 +14,11 @@
 #include "floah-layout/elements/horizontal_flow.h"
 #include "floah-widget/node_masks.h"
 #include "floah-widget/widgets/checkbox.h"
+#include "floah-widget/widgets/dropdown.h"
+#include "floah-widget/widgets/radio_button.h"
 #include "luna/window.h"
 #include "luna/command/command_queue.h"
 #include "luna/command/material/forward/update_forward_material_manager_command.h"
-#include "luna/command/mesh/update_mesh_manager_command.h"
 #include "luna/command/other/custom_command.h"
 #include "luna/command/other/fence_command.h"
 #include "luna/command/other/submit_command.h"
@@ -361,7 +362,9 @@ void Window::createMaterials()
       *swapchainMaterial, std::make_unique<DisplayMaterialInstance>(*swapchainTextures.front()));
 }
 
-void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialManagerCommand& updateMtlManagerCmd)
+void Window::createCommands(sol::ICommand&                            pollCmd,
+                            sol::UpdateForwardMaterialManagerCommand& updateMtlManagerCmd,
+                            sol::UpdateMeshManagerCommand&            updateMeshManagerCmd)
 {
     auto& commandQueue = pollCmd.getCommandQueue();
 
@@ -430,6 +433,7 @@ void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialMa
     submitCommand.addDependency(renderCommand);
     // Wait for all material data to be updated.
     submitCommand.addDependency(updateMtlManagerCmd);
+    submitCommand.addDependency(updateMeshManagerCmd);
     // Wait for swapchain submit to complete, because it uses the texture this submit renders to.
     submitCommand.addDependency(swapchainAwaitFenceCommand);
 
@@ -498,7 +502,12 @@ void Window::createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialMa
 
 void Window::createPanel()
 {
-    panelStylesheet    = std::make_unique<floah::Stylesheet>();
+    panelStylesheet = std::make_unique<floah::Stylesheet>();
+    panelStylesheet->set(floah::Widget::material_text,
+                         static_cast<sol::ForwardMaterialInstance*>(textMaterialInstance1));
+    panelStylesheet->set(floah::Widget::material_widget,
+                         static_cast<sol::ForwardMaterialInstance*>(widgetMaterialInstance));
+
     checkboxStylesheet = std::make_unique<floah::Stylesheet>();
     //panelStylesheet->set(floah::Checkbox::checkbox_box_size, floah::Size(1.0f, 0.5f));
     //checkboxStylesheet->set(floah::Checkbox::checkbox_box_size, floah::Size(1.0f, 0.25f));
@@ -513,43 +522,51 @@ void Window::createPanel()
     layout.getSize().setWidth(floah::Length(width));
     layout.getSize().setHeight(floah::Length(height));
 
-    auto& root = layout.setRoot(std::make_unique<floah::HorizontalFlow>());
+    auto& root = layout.setRoot(std::make_unique<floah::VerticalFlow>());
     root.getSize().setWidth(floah::Length(1.0f));
     root.getSize().setHeight(floah::Length(1.0f));
-    root.getInnerMargin().set(0, 0, 0, 32);
+    auto& dropdownElem = root.append(std::make_unique<floah::LayoutElement>());
+    dropdownElem.getSize().setWidth(floah::Length(1.0f));
+    dropdownElem.getSize().setHeight(floah::Length(32));
     auto& checkbox0Elem = root.append(std::make_unique<floah::LayoutElement>());
-    checkbox0Elem.getSize().setWidth(floah::Length(320));
-    checkbox0Elem.getSize().setHeight(floah::Length(1.0f));
+    checkbox0Elem.getSize().setWidth(floah::Length(1.0f));
+    checkbox0Elem.getSize().setHeight(floah::Length(32));
     auto& checkbox1Elem = root.append(std::make_unique<floah::LayoutElement>());
-    checkbox1Elem.getSize().setWidth(floah::Length(320));
-    checkbox1Elem.getSize().setHeight(floah::Length(1.0f));
+    checkbox1Elem.getSize().setWidth(floah::Length(1.0f));
+    checkbox1Elem.getSize().setHeight(floah::Length(32));
 
-    auto& checkbox0 = panel->addWidget(std::make_unique<floah::Checkbox>(), topLayer);
+    dataSources.stringList.list->appendString("abc");
+    dataSources.stringList.list->appendString("def");
+    dataSources.stringList.list->appendString("ghi");
+    dataSources.stringList.list->appendString("jkl");
+    auto& dropdown = panel->addWidget(std::make_unique<floah::Dropdown>(), topLayer);
+    dropdown.setLabel("A Value");
+    dropdown.setPanelLayoutElement(dropdownElem);
+    dropdown.setStylesheet(checkboxStylesheet.get());
+    dropdown.setItemsDataSource(dataSources.stringList.list.get());
+    dropdown.setIndexDataSource(dataSources.stringList.index.get());
+
+    auto& checkbox0 = panel->addWidget(std::make_unique<floah::RadioButton>(), topLayer);
     checkbox0.setLabel("Some Toggle");
     checkbox0.setPanelLayoutElement(checkbox0Elem);
     checkbox0.setStylesheet(checkboxStylesheet.get());
     checkbox0.setDataSource(dataSources.val0Source.get());
 
-    auto& checkbox1 = panel->addWidget(std::make_unique<floah::Checkbox>(), topLayer);
+    auto& checkbox1 = panel->addWidget(std::make_unique<floah::RadioButton>(checkbox0), topLayer);
     checkbox1.setLabel("Another Toggle");
     checkbox1.setPanelLayoutElement(checkbox1Elem);
     checkbox1.setStylesheet(checkboxStylesheet.get());
     checkbox1.setDataSource(dataSources.val1Source.get());
 
-    auto& widgetNode =
-      scenegraph->getRootNode().addChild(std::make_unique<sol::ForwardMaterialNode>(*widgetMaterialInstance));
-    auto& textNode0 =
-      scenegraph->getRootNode().addChild(std::make_unique<sol::ForwardMaterialNode>(*textMaterialInstance0));
-    auto& textNode1 = textNode0.addChild(std::make_unique<sol::ForwardMaterialNode>(*textMaterialInstance1));
-
-    scenegraphGenerator = std::make_unique<ScenegraphGenerator>(*widgetMaterial, *textMaterial, widgetNode, textNode1);
+    scenegraphGenerator =
+      std::make_unique<ScenegraphGenerator>(*widgetMaterial, *textMaterialInstance0, scenegraph->getRootNode());
 
     panel->generatePanelLayout();
     panel->generateWidgetLayouts();
     panel->generateGeometry(*application->meshManager, *application->materials.fontmap);
     panel->generateScenegraph(*scenegraphGenerator);
 
-    application->meshManager->transferStagedCopies();
+    //application->meshManager->transferStagedCopies();
 
     dot::Graph graph;
     scenegraph->visualize(graph);

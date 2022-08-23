@@ -17,6 +17,7 @@
 #include "luna/fwd.h"
 #include "luna/command/fwd.h"
 #include "luna/command/material/forward/update_forward_material_manager_command.h"
+#include "luna/command/mesh/update_mesh_manager_command.h"
 #include "sol/core/fwd.h"
 #include "sol/material/fwd.h"
 #include "sol/render/forward/fwd.h"
@@ -26,6 +27,7 @@
 // Current target includes.
 ////////////////////////////////////////////////////////////////
 
+#include "draft/data_sources.h"
 #include "draft/generators.h"
 #include "draft/materials/display_material.h"
 #include "draft/materials/text_material.h"
@@ -79,7 +81,9 @@ private:
 
     void createMaterials();
 
-    void createCommands(sol::ICommand& pollCmd, sol::UpdateForwardMaterialManagerCommand& updateMtlManagerCmd);
+    void createCommands(sol::ICommand&                            pollCmd,
+                        sol::UpdateForwardMaterialManagerCommand& updateMtlManagerCmd,
+                        sol::UpdateMeshManagerCommand&            updateMeshManagerCmd);
 
     void createPanel();
 
@@ -181,9 +185,10 @@ private:
 
     struct
     {
-        bool val0 = false;
-        bool val1 = true;
+        bool                                    val0 = false;
+        bool                                    val1 = true;
         std::unique_ptr<floah::IBoolDataSource> val0Source;
         std::unique_ptr<floah::IBoolDataSource> val1Source;
+        IndexedStringList                       stringList;
     } dataSources;
 };

@@ -97,7 +97,12 @@ void Application::createCommandQueue()
     updateMtlManagerCmd.setMaterialManager(*materialManager);
     updateMtlManagerCmd.setImageIndexPtr(&frameIdx);
 
-    for (const auto& window : windows) window->createCommands(pollCommand, updateMtlManagerCmd);
+    auto& updateMeshManagerCmd = commandQueue->createCommand<sol::UpdateMeshManagerCommand>();
+    updateMeshManagerCmd.setName("Update Mesh Manager");
+    updateMeshManagerCmd.setMeshManager(*meshManager);
+    updateMeshManagerCmd.addDependency(updateMtlManagerCmd);
+
+    for (const auto& window : windows) window->createCommands(pollCommand, updateMtlManagerCmd, updateMeshManagerCmd);
 
     commandQueue->finalize();
 

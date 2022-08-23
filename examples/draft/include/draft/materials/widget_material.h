@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////
 
 #include "math/include_all.h"
+#include "floah-viz/scenegraph/transform_node.h"
 #include "sol/core/fwd.h"
 #include "sol/material/forward/forward_material.h"
 #include "sol/material/forward/forward_material_instance.h"
@@ -65,7 +66,7 @@ private:
     math::mat4x4f windowTransform;
 };
 
-class WidgetTransformNode final : public sol::ForwardPushConstantNode
+class WidgetTransformNode final : public sol::ForwardPushConstantNode, public floah::ITransformNode
 {
 public:
     WidgetTransformNode(sol::ForwardMaterial& material, math::float4 o) :
@@ -86,13 +87,15 @@ public:
     // Getters.
     ////////////////////////////////////////////////////////////////
 
+    [[nodiscard]] Node& getAsNode() override { return *this; }
+
     [[nodiscard]] math::float4 getOffset() const noexcept { return offset; }
 
     ////////////////////////////////////////////////////////////////
     // Setters.
     ////////////////////////////////////////////////////////////////
 
-    void setOffset(math::float4 o) noexcept { offset = std::move(o); }
+    void setOffset(math::float3 o) noexcept override { offset = std::move(o); }
 
 private:
     math::float4 offset;

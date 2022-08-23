@@ -5,6 +5,7 @@ set(SRC_DIR "src")
 
 set(HEADERS
     ${INCLUDE_DIR}/application.h
+    ${INCLUDE_DIR}/data_sources.h
     ${INCLUDE_DIR}/generators.h
     ${INCLUDE_DIR}/window.h
 
@@ -15,6 +16,7 @@ set(HEADERS
 
 set(SOURCES
     ${SRC_DIR}/application.cpp
+    ${SRC_DIR}/data_sources.cpp
     ${SRC_DIR}/generators.cpp
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/window.cpp

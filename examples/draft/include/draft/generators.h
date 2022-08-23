@@ -4,7 +4,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
-#include "floah-widget/generators/scenegraph_generator.h"
+#include "floah-viz/scenegraph/scenegraph_generator.h"
 #include "sol/material/fwd.h"
 
 class ScenegraphGenerator : public floah::IScenegraphGenerator
@@ -16,7 +16,9 @@ public:
 
     ScenegraphGenerator();
 
-    ScenegraphGenerator(sol::ForwardMaterial& wdgtMaterial, sol::ForwardMaterial& txtMaterial, sol::Node& wdgtNode, sol::Node& txtNode);
+    ScenegraphGenerator(sol::ForwardMaterial&         wdgtMaterial,
+                        sol::ForwardMaterialInstance& txtMaterialInstance,
+                        sol::Node&                    root);
 
     ScenegraphGenerator(const ScenegraphGenerator&);
 
@@ -32,9 +34,14 @@ public:
     // Getters.
     ////////////////////////////////////////////////////////////////
 
-    [[nodiscard]] sol::Node& createWidgetNode(math::float3 offset) override;
+    [[nodiscard]] sol::Node& createWidgetNode() override;
 
-    [[nodiscard]] sol::Node& createTextNode(math::float3 offset) override;
+    [[nodiscard]] sol::Node& createTextMaterialNode(sol::Node&                    parent,
+                                                    sol::ForwardMaterialInstance& mtlInstance) override;
+
+    [[nodiscard]] floah::ITransformNode& createTransformNode(sol::Node& parent, math::float3 offset) override;
+
+    [[nodiscard]] sol::NodePtr createMaterialNode(sol::ForwardMaterialInstance& mtlInstance) override;
 
 private:
     ////////////////////////////////////////////////////////////////
@@ -43,15 +50,7 @@ private:
 
     sol::ForwardMaterial* widgetMaterial = nullptr;
 
-    sol::ForwardMaterial* textMaterial = nullptr;
+    sol::ForwardMaterialInstance* textMaterialInstance = nullptr;
 
-    /**
-     * \brief Root node for widget nodes.
-     */
-    sol::Node* widgetNode = nullptr;
-
-    /**
-     * \brief Root node for text nodes.
-     */
-    sol::Node* textNode = nullptr;
+    sol::Node* rootNode = nullptr;
 };

@@ -7,16 +7,21 @@
 #include "draft/materials/widget_material.h"
 
 ////////////////////////////////////////////////////////////////
+// Module includes.
+////////////////////////////////////////////////////////////////
+
+#include "sol/scenegraph/forward/forward_material_node.h"
+
+////////////////////////////////////////////////////////////////
 // Constructors.
 ////////////////////////////////////////////////////////////////
 
 ScenegraphGenerator::ScenegraphGenerator() = default;
 
-ScenegraphGenerator::ScenegraphGenerator(sol::ForwardMaterial& wdgtMaterial,
-                                         sol::ForwardMaterial& txtMaterial,
-                                         sol::Node&            wdgtNode,
-                                         sol::Node&            txtNode) :
-    widgetMaterial(&wdgtMaterial), textMaterial(&txtMaterial), widgetNode(&wdgtNode), textNode(&txtNode)
+ScenegraphGenerator::ScenegraphGenerator(sol::ForwardMaterial&         wdgtMaterial,
+                                         sol::ForwardMaterialInstance& txtMaterialInstance,
+                                         sol::Node&                    root) :
+    widgetMaterial(&wdgtMaterial), textMaterialInstance(&txtMaterialInstance), rootNode(&root)
 {
 }
 
@@ -34,12 +39,20 @@ ScenegraphGenerator& ScenegraphGenerator::operator=(ScenegraphGenerator&&) noexc
 // Getters.
 ////////////////////////////////////////////////////////////////
 
-sol::Node& ScenegraphGenerator::createWidgetNode(const math::float3 offset)
+sol::Node& ScenegraphGenerator::createWidgetNode() { return rootNode->addChild(std::make_unique<sol::Node>()); }
+
+sol::Node& ScenegraphGenerator::createTextMaterialNode(sol::Node& parent, sol::ForwardMaterialInstance& mtlInstance)
 {
-    return widgetNode->addChild(std::make_unique<WidgetTransformNode>(*widgetMaterial, math::float4(offset, 1.0f)));
+    auto& node = parent.addChild(std::make_unique<sol::ForwardMaterialNode>(*textMaterialInstance));
+    return node.addChild(std::make_unique<sol::ForwardMaterialNode>(mtlInstance));
 }
 
-sol::Node& ScenegraphGenerator::createTextNode(const math::float3 offset)
+floah::ITransformNode& ScenegraphGenerator::createTransformNode(sol::Node& parent, const math::float3 offset)
 {
-    return textNode->addChild(std::make_unique<WidgetTransformNode>(*textMaterial, math::float4(offset, 1.0f)));
+    return parent.addChild(std::make_unique<WidgetTransformNode>(*widgetMaterial, math::float4(offset, 1.0f)));
+}
+
+sol::NodePtr ScenegraphGenerator::createMaterialNode(sol::ForwardMaterialInstance& mtlInstance)
+{
+    return std::make_unique<sol::ForwardMaterialNode>(mtlInstance);
 }
