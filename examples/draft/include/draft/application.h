@@ -30,7 +30,11 @@ class Application
 {
 public:
     friend class Window;
-    static constexpr uint32_t maxFrames = 2;
+    // TODO: Cannot set this to >1. Meshes are shared between
+    // frames, so deallocating a mesh requires waiting maxFrames frames...
+    // which is not supported yet. Where should this be implemented?
+    // Some sort of countdown in the MeshManager, in Floah, or in user code?
+    static constexpr uint32_t maxFrames = 1;
 
     ////////////////////////////////////////////////////////////////
     // Constructors.

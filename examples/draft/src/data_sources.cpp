@@ -29,20 +29,63 @@ void IndexDataSource::getIntegral(uint64_t& v) { v = static_cast<std::remove_ref
 // Setters.
 ////////////////////////////////////////////////////////////////
 
-void IndexDataSource::setIndex(const int64_t v) { index = v; }
+void IndexDataSource::setIndex(const int64_t v)
+{
+    index = v;
+    emitDataSourceUpdate();
+}
 
 void IndexDataSource::setVoid(void* v) { throw std::runtime_error(""); }
 
 void IndexDataSource::setString(const std::string& v) { throw std::runtime_error(""); }
 
-void IndexDataSource::setIntegral(const int8_t v) { index = static_cast<decltype(index)>(v); }
-void IndexDataSource::setIntegral(const int16_t v) { index = static_cast<decltype(index)>(v); }
-void IndexDataSource::setIntegral(const int32_t v) { index = static_cast<decltype(index)>(v); }
-void IndexDataSource::setIntegral(const int64_t v) { index = static_cast<decltype(index)>(v); }
-void IndexDataSource::setIntegral(const uint8_t v) { index = static_cast<decltype(index)>(v); }
-void IndexDataSource::setIntegral(const uint16_t v) { index = static_cast<decltype(index)>(v); }
-void IndexDataSource::setIntegral(const uint32_t v) { index = static_cast<decltype(index)>(v); }
-void IndexDataSource::setIntegral(const uint64_t v) { index = static_cast<decltype(index)>(v); }
+void IndexDataSource::setIntegral(const int8_t v)
+{
+    index = static_cast<decltype(index)>(v);
+    emitDataSourceUpdate();
+}
+
+void IndexDataSource::setIntegral(const int16_t v)
+{
+    index = static_cast<decltype(index)>(v);
+    emitDataSourceUpdate();
+}
+
+void IndexDataSource::setIntegral(const int32_t v)
+{
+    index = static_cast<decltype(index)>(v);
+    emitDataSourceUpdate();
+}
+
+void IndexDataSource::setIntegral(const int64_t v)
+{
+    index = static_cast<decltype(index)>(v);
+    emitDataSourceUpdate();
+}
+
+void IndexDataSource::setIntegral(const uint8_t v)
+{
+    index = static_cast<decltype(index)>(v);
+    emitDataSourceUpdate();
+}
+
+void IndexDataSource::setIntegral(const uint16_t v)
+{
+    index = static_cast<decltype(index)>(v);
+    emitDataSourceUpdate();
+}
+
+void IndexDataSource::setIntegral(const uint32_t v)
+{
+    index = static_cast<decltype(index)>(v);
+    emitDataSourceUpdate();
+}
+
+void IndexDataSource::setIntegral(const uint64_t v)
+{
+    index = static_cast<decltype(index)>(v);
+    emitDataSourceUpdate();
+}
 
 ////////////////////////////////////////////////////////////////
 // Getters.
@@ -60,21 +103,41 @@ std::string StringListDataSource::getString(const size_t i) { return list[i]; }
 
 void StringListDataSource::appendVoid(void* v) { throw std::runtime_error(""); }
 
-void StringListDataSource::appendString(const std::string& v) { list.emplace_back(v); }
+void StringListDataSource::appendString(const std::string& v)
+{
+    list.emplace_back(v);
+    emitDataSourceUpdate();
+}
 
 void StringListDataSource::prependVoid(void* v) { throw std::runtime_error(""); }
 
-void StringListDataSource::prependString(const std::string& v) { list.insert(list.begin(), v); }
+void StringListDataSource::prependString(const std::string& v)
+{
+    list.insert(list.begin(), v);
+    emitDataSourceUpdate();
+}
 
 void StringListDataSource::insertVoid(void* v, size_t i) { throw std::runtime_error(""); }
 
-void StringListDataSource::insertString(const std::string& v, const size_t i) { list.insert(list.begin() + i, v); }
+void StringListDataSource::insertString(const std::string& v, const size_t i)
+{
+    list.insert(list.begin() + i, v);
+    emitDataSourceUpdate();
+}
 
 void StringListDataSource::setVoid(void* v, size_t i) { throw std::runtime_error(""); }
 
-void StringListDataSource::setString(const std::string& v, size_t i) { list[i] = v; }
+void StringListDataSource::setString(const std::string& v, size_t i)
+{
+    list[i] = v;
+    emitDataSourceUpdate();
+}
 
-void StringListDataSource::remove(const size_t i) { list.erase(list.begin() + i); }
+void StringListDataSource::remove(const size_t i)
+{
+    list.erase(list.begin() + i);
+    emitDataSourceUpdate();
+}
 
 IndexedStringList::IndexedStringList() :
     list(std::make_unique<StringListDataSource>()), index(std::make_unique<IndexDataSource>())

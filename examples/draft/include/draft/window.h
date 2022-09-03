@@ -83,7 +83,7 @@ private:
 
     void createCommands(sol::ICommand&                            pollCmd,
                         sol::UpdateForwardMaterialManagerCommand& updateMtlManagerCmd,
-                        sol::UpdateMeshManagerCommand&            updateMeshManagerCmd);
+                        sol::UpdateMeshManagerCommand&            transferMeshManagerCmd);
 
     void createPanel();
 

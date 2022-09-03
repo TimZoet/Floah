@@ -91,18 +91,18 @@ void Application::createCommandQueue()
         for (const auto& window : windows) window->inputContext->postPoll();
     });
 
-
     auto& updateMtlManagerCmd = commandQueue->createCommand<sol::UpdateForwardMaterialManagerCommand>();
     updateMtlManagerCmd.setName("Update Forward Material Manager");
     updateMtlManagerCmd.setMaterialManager(*materialManager);
     updateMtlManagerCmd.setImageIndexPtr(&frameIdx);
 
-    auto& updateMeshManagerCmd = commandQueue->createCommand<sol::UpdateMeshManagerCommand>();
-    updateMeshManagerCmd.setName("Update Mesh Manager");
-    updateMeshManagerCmd.setMeshManager(*meshManager);
-    updateMeshManagerCmd.addDependency(updateMtlManagerCmd);
+    auto& transferMeshManagerCmd = commandQueue->createCommand<sol::UpdateMeshManagerCommand>();
+    transferMeshManagerCmd.setName("Mesh Transfer");
+    transferMeshManagerCmd.setMeshManager(*meshManager);
+    transferMeshManagerCmd.setAction(sol::UpdateMeshManagerCommand::Action::All);
+    transferMeshManagerCmd.addDependency(updateMtlManagerCmd);
 
-    for (const auto& window : windows) window->createCommands(pollCommand, updateMtlManagerCmd, updateMeshManagerCmd);
+    for (const auto& window : windows) window->createCommands(pollCommand, updateMtlManagerCmd, transferMeshManagerCmd);
 
     commandQueue->finalize();
 

@@ -108,6 +108,12 @@ namespace
         context.setEnter(entered ? true : false);
         std::cout << "Enter " << entered << std::endl;
     }
+
+    void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+    {
+        floah::InputContext& context = *static_cast<floah::InputContext*>(glfwGetWindowUserPointer(window));
+        context.setScroll({static_cast<int32_t>(xoffset), static_cast<int32_t>(yoffset)});
+    }
 }  // namespace
 
 ////////////////////////////////////////////////////////////////
@@ -146,6 +152,7 @@ void Window::initialize()
     glfwSetCursorPosCallback(window->get(), cursorPositionCallback);
     glfwSetCursorEnterCallback(window->get(), cursorEnterCallback);
     glfwSetMouseButtonCallback(window->get(), mouseButtonCallback);
+    glfwSetScrollCallback(window->get(), scrollCallback);
     glfwSetWindowFocusCallback(window->get(), windowFocusCallback);
 }
 
@@ -364,11 +371,12 @@ void Window::createMaterials()
 
 void Window::createCommands(sol::ICommand&                            pollCmd,
                             sol::UpdateForwardMaterialManagerCommand& updateMtlManagerCmd,
-                            sol::UpdateMeshManagerCommand&            updateMeshManagerCmd)
+                            sol::UpdateMeshManagerCommand&            transferMeshManagerCmd)
 {
     auto& commandQueue = pollCmd.getCommandQueue();
 
     auto& regenerateCommand = commandQueue.createCommand<sol::CustomCommand>();
+    regenerateCommand.setName("Generate");
     regenerateCommand.setFunction([&] {
         panel->generateWidgetLayouts();
         panel->generateGeometry(*application->meshManager, *application->materials.fontmap);
@@ -411,6 +419,7 @@ void Window::createCommands(sol::ICommand&                            pollCmd,
     for (const auto& fb : framebuffers) renderCommand.addFramebuffer(*fb);
     renderCommand.setImageIndexPtr(&application->frameIdx);
     renderCommand.addDependency(updateWindowMtlManagerCmd);
+    renderCommand.addDependency(transferMeshManagerCmd);
 
     updateMtlManagerCmd.addDependency(awaitFenceCommand);
 
@@ -431,9 +440,8 @@ void Window::createCommands(sol::ICommand&                            pollCmd,
     submitCommand.setSignalFenceIndexPtr(&application->frameIdx);
     // Wait for command buffer recording to complete.
     submitCommand.addDependency(renderCommand);
-    // Wait for all material data to be updated.
-    submitCommand.addDependency(updateMtlManagerCmd);
-    submitCommand.addDependency(updateMeshManagerCmd);
+    // Wait for all mesh and material data to be updated.
+    submitCommand.addDependency(transferMeshManagerCmd);
     // Wait for swapchain submit to complete, because it uses the texture this submit renders to.
     submitCommand.addDependency(swapchainAwaitFenceCommand);
 
@@ -507,6 +515,7 @@ void Window::createPanel()
                          static_cast<sol::ForwardMaterialInstance*>(textMaterialInstance1));
     panelStylesheet->set(floah::Widget::material_widget,
                          static_cast<sol::ForwardMaterialInstance*>(widgetMaterialInstance));
+    panelStylesheet->set<size_t>(floah::Dropdown::dropdown_items_max, 5);
 
     checkboxStylesheet = std::make_unique<floah::Stylesheet>();
     //panelStylesheet->set(floah::Checkbox::checkbox_box_size, floah::Size(1.0f, 0.5f));
@@ -535,10 +544,16 @@ void Window::createPanel()
     checkbox1Elem.getSize().setWidth(floah::Length(1.0f));
     checkbox1Elem.getSize().setHeight(floah::Length(32));
 
-    dataSources.stringList.list->appendString("abc");
-    dataSources.stringList.list->appendString("def");
-    dataSources.stringList.list->appendString("ghi");
-    dataSources.stringList.list->appendString("jkl");
+    dataSources.stringList.list->appendString("0");
+    dataSources.stringList.list->appendString("1");
+    dataSources.stringList.list->appendString("2");
+    dataSources.stringList.list->appendString("3");
+    dataSources.stringList.list->appendString("4");
+    dataSources.stringList.list->appendString("5");
+    dataSources.stringList.list->appendString("6");
+    dataSources.stringList.list->appendString("7");
+    dataSources.stringList.list->appendString("8");
+    dataSources.stringList.list->appendString("9");
     auto& dropdown = panel->addWidget(std::make_unique<floah::Dropdown>(), topLayer);
     dropdown.setLabel("A Value");
     dropdown.setPanelLayoutElement(dropdownElem);
@@ -563,10 +578,6 @@ void Window::createPanel()
 
     panel->generatePanelLayout();
     panel->generateWidgetLayouts();
-    panel->generateGeometry(*application->meshManager, *application->materials.fontmap);
-    panel->generateScenegraph(*scenegraphGenerator);
-
-    //application->meshManager->transferStagedCopies();
 
     dot::Graph graph;
     scenegraph->visualize(graph);
