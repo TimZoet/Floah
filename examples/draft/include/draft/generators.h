@@ -34,12 +34,16 @@ public:
     // Getters.
     ////////////////////////////////////////////////////////////////
 
-    [[nodiscard]] sol::Node& createWidgetNode() override;
+    [[nodiscard]] sol::Node& createPanelNode(sol::Node* parent) override;
+
+    [[nodiscard]] floah::ITransformNode& createPanelTransformNode(sol::Node& parent, math::float3 offset) override;
+
+    [[nodiscard]] sol::Node& createWidgetNode(sol::Node* parent) override;
 
     [[nodiscard]] sol::Node& createTextMaterialNode(sol::Node&                    parent,
                                                     sol::ForwardMaterialInstance& mtlInstance) override;
 
-    [[nodiscard]] floah::ITransformNode& createTransformNode(sol::Node& parent, math::float3 offset) override;
+    [[nodiscard]] floah::ITransformNode& createWidgetTransformNode(sol::Node& parent, math::float3 offset) override;
 
     [[nodiscard]] sol::NodePtr createMaterialNode(sol::ForwardMaterialInstance& mtlInstance) override;
 

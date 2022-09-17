@@ -24,7 +24,7 @@ TextMaterial::TextMaterial(sol::VulkanShaderModuleSharedPtr vertexModule,
 
     auto& widgetTransform  = layout.addPushConstant();
     widgetTransform.name   = "WidgetTransform";
-    widgetTransform.size   = sizeof(float) * 4;
+    widgetTransform.size   = sizeof(float) * 8;
     widgetTransform.offset = 0;
     widgetTransform.stages = VK_SHADER_STAGE_VERTEX_BIT;
 
@@ -50,27 +50,3 @@ TextMaterial::TextMaterial(sol::VulkanShaderModuleSharedPtr vertexModule,
 }
 
 TextMaterial::~TextMaterial() noexcept = default;
-
-TextMaterialInstance::TextMaterialInstance(sol::Texture2D& fmap) : fontmap(&fmap) {}
-
-TextMaterialInstance::~TextMaterialInstance() noexcept = default;
-
-uint32_t TextMaterialInstance::getSetIndex() const { return fontmap ? 1 : 0; }
-
-bool TextMaterialInstance::isUniformBufferStale(size_t binding) const { return false; }
-
-const void* TextMaterialInstance::getUniformBufferData(size_t binding) const { return &windowTransform; }
-
-sol::Texture2D* TextMaterialInstance::getTextureData(size_t binding) const { return fontmap; }
-
-////////////////////////////////////////////////////////////////
-// Setters.
-////////////////////////////////////////////////////////////////
-
-void TextMaterialInstance::setFontmap(sol::Texture2D& fmap) { fontmap = &fmap; }
-
- void TextMaterialInstance::setWindowTransform(math::float4 lower, math::float4 upper)
-{
-    windowTransform.r0 = std::move(lower);
-    windowTransform.r1 = std::move(upper);
-}

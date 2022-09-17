@@ -33,17 +33,3 @@ DisplayMaterial::DisplayMaterial(sol::VulkanShaderModuleSharedPtr vertexModule,
 }
 
 DisplayMaterial::~DisplayMaterial() noexcept = default;
-
-DisplayMaterialInstance::DisplayMaterialInstance(sol::Texture2D& tex) : texture(&tex) {}
-
-DisplayMaterialInstance::~DisplayMaterialInstance() noexcept = default;
-
-uint32_t DisplayMaterialInstance::getSetIndex() const { return 0; }
-
-bool DisplayMaterialInstance::isUniformBufferStale(size_t binding) const { return false; }
-
-const void* DisplayMaterialInstance::getUniformBufferData(size_t binding) const { return nullptr; }
-
-sol::Texture2D* DisplayMaterialInstance::getTextureData(size_t binding) const { return texture; }
-
-void DisplayMaterialInstance::setTexture(sol::Texture2D& tex) { texture = &tex; }

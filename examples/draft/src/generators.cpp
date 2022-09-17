@@ -4,7 +4,8 @@
 // Current target includes.
 ////////////////////////////////////////////////////////////////
 
-#include "draft/materials/widget_material.h"
+#include "draft/materials/panel_transform_node.h"
+#include "draft/materials/widget_transform_node.h"
 
 ////////////////////////////////////////////////////////////////
 // Module includes.
@@ -39,7 +40,25 @@ ScenegraphGenerator& ScenegraphGenerator::operator=(ScenegraphGenerator&&) noexc
 // Getters.
 ////////////////////////////////////////////////////////////////
 
-sol::Node& ScenegraphGenerator::createWidgetNode() { return rootNode->addChild(std::make_unique<sol::Node>()); }
+sol::Node& ScenegraphGenerator::createPanelNode(sol::Node* parent)
+{
+    if (!parent) parent = rootNode;
+
+    return parent->addChild(std::make_unique<sol::Node>());
+}
+
+floah::ITransformNode& ScenegraphGenerator::createPanelTransformNode(sol::Node& parent, math::float3 offset)
+{
+    // TODO: Need proper panelMaterial.
+    return parent.addChild(std::make_unique<PanelTransformNode>(*widgetMaterial, math::float4(offset, 1.0f)));
+}
+
+sol::Node& ScenegraphGenerator::createWidgetNode(sol::Node* parent)
+{
+    if (!parent) parent = rootNode;
+
+    return parent->addChild(std::make_unique<sol::Node>());
+}
 
 sol::Node& ScenegraphGenerator::createTextMaterialNode(sol::Node& parent, sol::ForwardMaterialInstance& mtlInstance)
 {
@@ -47,7 +66,7 @@ sol::Node& ScenegraphGenerator::createTextMaterialNode(sol::Node& parent, sol::F
     return node.addChild(std::make_unique<sol::ForwardMaterialNode>(mtlInstance));
 }
 
-floah::ITransformNode& ScenegraphGenerator::createTransformNode(sol::Node& parent, const math::float3 offset)
+floah::ITransformNode& ScenegraphGenerator::createWidgetTransformNode(sol::Node& parent, const math::float3 offset)
 {
     return parent.addChild(std::make_unique<WidgetTransformNode>(*widgetMaterial, math::float4(offset, 1.0f)));
 }

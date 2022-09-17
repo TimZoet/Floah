@@ -11,7 +11,6 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
-#include "floah-data/bool_data_source.h"
 #include "floah-put/input_context.h"
 #include "floah-widget/panel.h"
 #include "luna/fwd.h"
@@ -27,11 +26,12 @@
 // Current target includes.
 ////////////////////////////////////////////////////////////////
 
-#include "draft/data_sources.h"
 #include "draft/generators.h"
-#include "draft/materials/display_material.h"
-#include "draft/materials/text_material.h"
-#include "draft/materials/widget_material.h"
+#include "draft/materials/display_material_instance.h"
+#include "draft/materials/text_material_instance.h"
+#include "draft/materials/widget_material_instance.h"
+#include "draft/models/global_model.h"
+#include "draft/panels/simple_panel.h"
 
 class Application;
 
@@ -88,8 +88,6 @@ private:
     void createPanel();
 
     void createSwapchainRenderData();
-
-    void createDataSources();
 
     ////////////////////////////////////////////////////////////////
     // Member variables.
@@ -159,8 +157,6 @@ private:
      */
     uint32_t imageIdx = 0;
 
-    floah::PanelPtr panel;
-
     sol::ForwardMaterialManagerPtr materialManager;
 
     sol::ForwardMaterial* widgetMaterial = nullptr;
@@ -183,12 +179,7 @@ private:
 
     floah::StylesheetPtr checkboxStylesheet;
 
-    struct
-    {
-        bool                                    val0 = false;
-        bool                                    val1 = true;
-        std::unique_ptr<floah::IBoolDataSource> val0Source;
-        std::unique_ptr<floah::IBoolDataSource> val1Source;
-        IndexedStringList                       stringList;
-    } dataSources;
+    GlobalModel globalModel0, globalModel1;
+
+    std::unique_ptr<SimplePanel> panel0, panel1;
 };

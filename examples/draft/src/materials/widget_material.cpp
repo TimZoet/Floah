@@ -24,7 +24,7 @@ WidgetMaterial::WidgetMaterial(sol::VulkanShaderModuleSharedPtr vertexModule,
 
     auto& widgetTransform  = layout.addPushConstant();
     widgetTransform.name   = "WidgetTransform";
-    widgetTransform.size   = sizeof(float) * 4;
+    widgetTransform.size   = sizeof(float) * 8;
     widgetTransform.offset = 0;
     widgetTransform.stages = VK_SHADER_STAGE_VERTEX_BIT;
 
@@ -44,30 +44,3 @@ WidgetMaterial::WidgetMaterial(sol::VulkanShaderModuleSharedPtr vertexModule,
 }
 
 WidgetMaterial::~WidgetMaterial() noexcept = default;
-
-WidgetMaterialInstance::~WidgetMaterialInstance() noexcept = default;
-
-////////////////////////////////////////////////////////////////
-// Getters.
-////////////////////////////////////////////////////////////////
-
-uint32_t WidgetMaterialInstance::getSetIndex() const { return 0; }
-
-bool WidgetMaterialInstance::isUniformBufferStale(size_t binding) const { return false; }
-
-const void* WidgetMaterialInstance::getUniformBufferData(size_t binding) const
-{
-    return &windowTransform;
-}
-
-sol::Texture2D* WidgetMaterialInstance::getTextureData(size_t binding) const { return nullptr; }
-
-////////////////////////////////////////////////////////////////
-// Setters.
-////////////////////////////////////////////////////////////////
-
-void WidgetMaterialInstance::setWindowTransform(math::float4 lower, math::float4 upper)
-{
-    windowTransform.r0 = std::move(lower);
-    windowTransform.r1 = std::move(upper);
-}

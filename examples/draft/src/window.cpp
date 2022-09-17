@@ -59,6 +59,9 @@
 ////////////////////////////////////////////////////////////////
 
 #include "draft/application.h"
+#include "draft/materials/display_material.h"
+#include "draft/materials/text_material.h"
+#include "draft/materials/widget_material.h"
 
 namespace
 {
@@ -136,7 +139,6 @@ void Window::initialize()
     window       = std::make_unique<sol::Window>(std::array{width, height}, "ForwardRenderer");
     inputContext = std::make_unique<floah::InputContext>();
     scenegraph   = std::make_unique<sol::Scenegraph>();
-    createDataSources();
     createSurface();
     createSwapchain();
     createRenderPass();
@@ -378,9 +380,19 @@ void Window::createCommands(sol::ICommand&                            pollCmd,
     auto& regenerateCommand = commandQueue.createCommand<sol::CustomCommand>();
     regenerateCommand.setName("Generate");
     regenerateCommand.setFunction([&] {
-        panel->generateWidgetLayouts();
-        panel->generateGeometry(*application->meshManager, *application->materials.fontmap);
-        panel->generateScenegraph(*scenegraphGenerator);
+        panel0->generateWidgetLayouts();
+        panel1->generateWidgetLayouts();
+
+        panel0->generateGeometry(*application->meshManager, *application->materials.fontmap);
+        panel1->generateGeometry(*application->meshManager, *application->materials.fontmap);
+
+        panel0->generateScenegraph(*scenegraphGenerator);
+        panel1->generateScenegraph(*scenegraphGenerator);
+
+        dot::Graph graph;
+        scenegraph->visualize(graph);
+        std::ofstream f("graph.dot");
+        graph.write(f);
     });
     regenerateCommand.addDependency(pollCmd);
 
@@ -515,74 +527,20 @@ void Window::createPanel()
                          static_cast<sol::ForwardMaterialInstance*>(textMaterialInstance1));
     panelStylesheet->set(floah::Widget::material_widget,
                          static_cast<sol::ForwardMaterialInstance*>(widgetMaterialInstance));
+    panelStylesheet->set(floah::Panel::material_panel,
+                         static_cast<sol::ForwardMaterialInstance*>(widgetMaterialInstance));
     panelStylesheet->set<size_t>(floah::Dropdown::dropdown_items_max, 5);
 
-    checkboxStylesheet = std::make_unique<floah::Stylesheet>();
-    //panelStylesheet->set(floah::Checkbox::checkbox_box_size, floah::Size(1.0f, 0.5f));
-    //checkboxStylesheet->set(floah::Checkbox::checkbox_box_size, floah::Size(1.0f, 0.25f));
-    //panelStylesheet->set(floah::Checkbox::checkbox_box_height, floah::Length(1.0f));
-    //checkboxStylesheet->set(floah::Checkbox::checkbox_box_height, floah::Length(0.5f));
+    panel0 = std::make_unique<SimplePanel>(*inputContext);
+    panel0->setStylesheet(panelStylesheet.get());
+    panel0->initialize(0, 0, width / 2, height, globalModel0);
 
-    panel = std::make_unique<floah::Panel>(*inputContext);
-    panel->setStylesheet(panelStylesheet.get());
-    auto& topLayer = panel->createLayer("top", -1);
-
-    auto& layout = panel->getLayout();
-    layout.getSize().setWidth(floah::Length(width));
-    layout.getSize().setHeight(floah::Length(height));
-
-    auto& root = layout.setRoot(std::make_unique<floah::VerticalFlow>());
-    root.getSize().setWidth(floah::Length(1.0f));
-    root.getSize().setHeight(floah::Length(1.0f));
-    auto& dropdownElem = root.append(std::make_unique<floah::LayoutElement>());
-    dropdownElem.getSize().setWidth(floah::Length(1.0f));
-    dropdownElem.getSize().setHeight(floah::Length(32));
-    auto& checkbox0Elem = root.append(std::make_unique<floah::LayoutElement>());
-    checkbox0Elem.getSize().setWidth(floah::Length(1.0f));
-    checkbox0Elem.getSize().setHeight(floah::Length(32));
-    auto& checkbox1Elem = root.append(std::make_unique<floah::LayoutElement>());
-    checkbox1Elem.getSize().setWidth(floah::Length(1.0f));
-    checkbox1Elem.getSize().setHeight(floah::Length(32));
-
-    dataSources.stringList.list->appendString("0");
-    dataSources.stringList.list->appendString("1");
-    dataSources.stringList.list->appendString("2");
-    dataSources.stringList.list->appendString("3");
-    dataSources.stringList.list->appendString("4");
-    dataSources.stringList.list->appendString("5");
-    dataSources.stringList.list->appendString("6");
-    dataSources.stringList.list->appendString("7");
-    dataSources.stringList.list->appendString("8");
-    dataSources.stringList.list->appendString("9");
-    auto& dropdown = panel->addWidget(std::make_unique<floah::Dropdown>(), topLayer);
-    dropdown.setLabel("A Value");
-    dropdown.setPanelLayoutElement(dropdownElem);
-    dropdown.setStylesheet(checkboxStylesheet.get());
-    dropdown.setItemsDataSource(dataSources.stringList.list.get());
-    dropdown.setIndexDataSource(dataSources.stringList.index.get());
-
-    auto& checkbox0 = panel->addWidget(std::make_unique<floah::RadioButton>(), topLayer);
-    checkbox0.setLabel("Some Toggle");
-    checkbox0.setPanelLayoutElement(checkbox0Elem);
-    checkbox0.setStylesheet(checkboxStylesheet.get());
-    checkbox0.setDataSource(dataSources.val0Source.get());
-
-    auto& checkbox1 = panel->addWidget(std::make_unique<floah::RadioButton>(checkbox0), topLayer);
-    checkbox1.setLabel("Another Toggle");
-    checkbox1.setPanelLayoutElement(checkbox1Elem);
-    checkbox1.setStylesheet(checkboxStylesheet.get());
-    checkbox1.setDataSource(dataSources.val1Source.get());
+    panel1 = std::make_unique<SimplePanel>(*inputContext);
+    panel1->setStylesheet(panelStylesheet.get());
+    panel1->initialize(width / 2, 0, width / 2, height, globalModel1);
 
     scenegraphGenerator =
       std::make_unique<ScenegraphGenerator>(*widgetMaterial, *textMaterialInstance0, scenegraph->getRootNode());
-
-    panel->generatePanelLayout();
-    panel->generateWidgetLayouts();
-
-    dot::Graph graph;
-    scenegraph->visualize(graph);
-    std::ofstream f(std::string("scenegraph") + name + ".dot");
-    graph.write(f);
 }
 
 void Window::createSwapchainRenderData()
@@ -593,10 +551,4 @@ void Window::createSwapchainRenderData()
     mtlNode.addChild(std::make_unique<sol::MeshNode>(*application->quadMesh));
 
     traverser->traverse(graph, *swapchainRenderData);
-}
-
-void Window::createDataSources()
-{
-    dataSources.val0Source = std::make_unique<floah::BoolDataSource>(dataSources.val0);
-    dataSources.val1Source = std::make_unique<floah::BoolDataSource>(dataSources.val1);
 }
