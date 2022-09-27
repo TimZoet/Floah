@@ -47,6 +47,8 @@ TextMaterial::TextMaterial(sol::VulkanShaderModuleSharedPtr vertexModule,
     layout.addColorBlending(colorBlending);
 
     layout.finalize();
+
+    setLayer(1);
 }
 
 TextMaterial::~TextMaterial() noexcept = default;

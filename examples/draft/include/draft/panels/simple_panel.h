@@ -60,7 +60,9 @@ public:
     // Input.
     ////////////////////////////////////////////////////////////////
 
-   [[nodiscard]] math::int2 getInputOffset() const noexcept override;
+    [[nodiscard]] math::int2 getInputOffset() const noexcept override;
+
+    [[nodiscard]] floah::InputContext::MouseClickResult onMouseClick(const floah::InputContext::MouseClickEvent& click) override;
 
 private:
     ////////////////////////////////////////////////////////////////

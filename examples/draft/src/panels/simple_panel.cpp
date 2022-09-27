@@ -138,9 +138,11 @@ void SimplePanel::generateScenegraph(floah::IScenegraphGenerator& generator)
                 .getAsNode();  // TODO: Set proper z.
 
             auto& widgetTransformNode = generator.createWidgetTransformNode(panelTansformNode, math::float3(0));
-
             widgetTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.outline));
             widgetTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.background));
+            
+
+            
         }
         else
         {
@@ -159,7 +161,12 @@ void SimplePanel::generateScenegraph(floah::IScenegraphGenerator& generator)
 
 math::int2 SimplePanel::getInputOffset() const noexcept { return offset; }
 
-////////////////////////////////////////////////////////////////
+floah::InputContext::MouseClickResult SimplePanel::onMouseClick(const floah::InputContext::MouseClickEvent& click)
+{
+    return {};
+}
+
+  ////////////////////////////////////////////////////////////////
 // Stylesheet getters.
 ////////////////////////////////////////////////////////////////
 

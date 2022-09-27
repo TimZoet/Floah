@@ -3,6 +3,7 @@
 #include "bettertest/run.h"
 #include "floah_test/elements/grid.h"
 #include "floah_test/elements/horizontal_flow.h"
+#include "floah_test/input/sorting.h"
 
 #ifdef WIN32
 #include "Windows.h"
@@ -33,6 +34,7 @@ int main(int argc, char** argv)
             test::GridRemoveColumn,
             test::GridExtractColumn,
             test::HorizontalFlowProperties,
-            test::HorizontalFlowElements>(argc, argv, "floah");
+            test::HorizontalFlowElements,
+            test::InputElementSorting>(argc, argv, "floah");
     return 0;
 }

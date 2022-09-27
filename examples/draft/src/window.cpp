@@ -389,10 +389,10 @@ void Window::createCommands(sol::ICommand&                            pollCmd,
         panel0->generateScenegraph(*scenegraphGenerator);
         panel1->generateScenegraph(*scenegraphGenerator);
 
-        dot::Graph graph;
-        scenegraph->visualize(graph);
-        std::ofstream f("graph.dot");
-        graph.write(f);
+        //dot::Graph graph;
+        //scenegraph->visualize(graph);
+        //std::ofstream f("graph.dot");
+        //graph.write(f);
     });
     regenerateCommand.addDependency(pollCmd);
 

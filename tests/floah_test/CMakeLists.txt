@@ -8,6 +8,8 @@ set(SRC_DIR "src")
 set(HEADERS
     ${INCLUDE_DIR}/elements/grid.h
     ${INCLUDE_DIR}/elements/horizontal_flow.h
+
+    ${INCLUDE_DIR}/input/sorting.h
 )
  
 set(SOURCES
@@ -15,11 +17,14 @@ set(SOURCES
 
     ${SRC_DIR}/elements/grid.cpp
     ${SRC_DIR}/elements/horizontal_flow.cpp
+
+    ${SRC_DIR}/input/sorting.cpp
 )
 
 set(DEPS_PRIVATE
     bettertest::bettertest
     floah-layout
+    floah-put
 )
 
 make_target(
