@@ -1,4 +1,5 @@
-from conans import ConanFile
+from conan import ConanFile
+from conan.tools.files import copy
 
 class FloahConan(ConanFile):
     ############################################################################
@@ -47,11 +48,11 @@ class FloahConan(ConanFile):
     ############################################################################
     
     def export_sources(self):
-        self.copy("CMakeLists.txt")
-        self.copy("license")
-        self.copy("readme.md")
-        self.copy("cmake/*")
-        self.copy("modules/*")
+        copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
+        copy(self, "license", self.recipe_folder, self.export_sources_folder)
+        copy(self, "readme.md", self.recipe_folder, self.export_sources_folder)
+        copy(self, "cmake/*", self.recipe_folder, self.export_sources_folder)
+        copy(self, "modules/*", self.recipe_folder, self.export_sources_folder)
     
     def config_options(self):
         base = self.python_requires["pyreq"].module.BaseConan
@@ -69,20 +70,28 @@ class FloahConan(ConanFile):
         self.requires("math/1.0.0@timzoet/stable")
         self.requires("sol/1.0.0@timzoet/stable")
         self.requires("stduuid/1.0.0@timzoet/stable")
-        self.requires("openssl/3.0.1")
         
         if self.options.build_tests:
             self.requires("bettertest/1.0.0@timzoet/stable")
     
     def package_info(self):
+        self.cpp_info.components["common"].libs = ["floah-common"]
+        self.cpp_info.components["common"].requires = ["common::common", "dot::dot", "stduuid::stduuid"]
+        
+        self.cpp_info.components["data"].libs = ["floah-data"]
+        self.cpp_info.components["data"].requires = ["common"]
+        
         self.cpp_info.components["layout"].libs = ["floah-layout"]
-        self.cpp_info.components["layout"].requires = ["common::common", "dot::dot", "stduuid::stduuid"]
+        self.cpp_info.components["layout"].requires = ["common", "common::common", "dot::dot", "stduuid::stduuid"]
+        
         self.cpp_info.components["put"].libs = ["floah-put"]
-        self.cpp_info.components["put"].requires = ["floah-layout"]
+        self.cpp_info.components["put"].requires = ["common"]
+        
         self.cpp_info.components["viz"].libs = ["floah-viz"]
-        self.cpp_info.components["viz"].requires = ["floah-layout", "freetype::freetype", "icu::icu", "math::math", "sol::core", "sol::luna"]
+        self.cpp_info.components["viz"].requires = ["common", "freetype::freetype", "icu::icu", "math::math", "sol::core", "sol::luna"]
+        
         self.cpp_info.components["widget"].libs = ["floah-widget"]
-        self.cpp_info.components["widget"].requires = ["floah-layout", "floah-put", "floah-viz"]
+        self.cpp_info.components["widget"].requires = ["common", "data", "layout", "put", "viz"]
     
     def generate(self):
         base = self.python_requires["pyreq"].module.BaseConan
